@@ -3,7 +3,7 @@
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/apkingo.png?raw=true" />
   <p align="center">
-    <a href="https://github.com/andpalmier/apkingo/blob/master/LICENSE"><img alt="Software License" src="https://img.shields.io/badge/license-GPL3-brightgreen.svg?style=flat-square"></a>
+    <a href="https://github.com/andpalmier/apkingo/blob/main/LICENSE"><img alt="Software License" src="https://img.shields.io/badge/license-GPL3-brightgreen.svg?style=flat-square"></a>
     <a href="https://goreportcard.com/report/github.com/andpalmier/apkingo"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/andpalmier/apkingo?style=flat-square"></a>
     <a href="https://twitter.com/intent/follow?screen_name=andpalmier"><img src="https://img.shields.io/twitter/follow/andpalmier?style=social&logo=twitter" alt="follow on Twitter"></a>
   </p>
@@ -16,7 +16,7 @@ apkingo is a tool written in Go to get detailed information about an apk file. a
 After downloading the repository, navigate into the directory and build the project with `make apkingo`. This will create a folder `build`, containing an executable called `apkingo`. You can then run the executable with the following flags:
 
 - `-apk` to specify the path to the apk file (**required**)
-- `-cert` for printing the certificate information retrieved in the apk file (**sometimes printing a conversion error, but it's still working!**)
+- `-cert` for printing the certificate information retrieved in the apk file (**sometimes it returns a conversion error, but it's still working!**)
 - `-playstore` for searching the app in the Play Store by its package name
 
 ## Example
@@ -29,6 +29,6 @@ After downloading the repository, navigate into the directory and build the proj
 
 ## Libraries used
 
-- [shogo81148/androidbinary](github.com/shogo82148/androidbinary)
-- [avast/apkverifier](github.com/avast/apkverifier)
-- [n0madic/google-play-scraper](github.com/n0madic/google-play-scraper)
+- [shogo81148/androidbinary](https://github.com/shogo82148/androidbinary)
+- [avast/apkverifier](https://github.com/avast/apkverifier)
+- [n0madic/google-play-scraper](https://github.com/n0madic/google-play-scraper)
