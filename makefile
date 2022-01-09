@@ -3,9 +3,8 @@ all: apkingo
 apkingo: build
 	@go build -o build/apkingo cmd/*.go
 
-install: apkingo
-	@cp build/apkingo /usr/bin/
-	@chmod a+x /usr/bin/apkingo
+install:
+	@go install ./cmd
 
 build:
 	@mkdir -p build
