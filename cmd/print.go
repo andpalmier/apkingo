@@ -83,7 +83,7 @@ func (androidapp *AndroidApp) printKoodousInfo() {
 }
 
 // printPermissions() - print permissions found in the apk
-func (androidApp *AndroidApp) printPermissions() {
+func (androidapp *AndroidApp) printPermissions() {
 	yellow.Println("\n* Permissions")
 	if len(androidapp.Permissions) == 0 {
 		italic.Println("no permissions found")
@@ -95,7 +95,7 @@ func (androidApp *AndroidApp) printPermissions() {
 }
 
 // printMetadata() - print metadata found in the apk
-func (androidApp *AndroidApp) printMetadata() {
+func (androidapp *AndroidApp) printMetadata() {
 	yellow.Println("\n* Metadata")
 	if len(androidapp.Metadata) == 0 {
 		italic.Println("no metadata found")

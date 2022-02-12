@@ -26,7 +26,6 @@ func (androidapp *AndroidApp) getCertInfo(filepath string) (*apkverifier.CertInf
 	cert, _ := apkverifier.PickBestApkCert(res)
 	if cert == nil {
 		return &apkverifier.CertInfo{}, errors.New("no certificate found")
-	} else {
-		return cert, nil
 	}
+	return cert, nil
 }

@@ -42,18 +42,21 @@ var androidname = map[int]string{
 	33: "Android 13",
 }
 
+// AndroidApp - struct for saving details about apk
 type AndroidApp struct {
-	Name        string             `json:"name"`
-	GeneralInfo GeneralInfoApk     `json:"generalinfo"`
-	Hashes      HashApk            `json:"hashes"`
-	Permissions []string           `json:"permissions"`
-	Metadata    []Metadata         `json:"metadata"`
-	Certificate CertificateInfoApk `json:"certificate"`
-	PlayStore   PlayStoreInfoApk   `json:"playstore"`
-	Koodous     KoodousInfoApk     `json:"koodous"`
+	Name        string          `json:"name"`
+	GeneralInfo GeneralInfo     `json:"generalinfo"`
+	Hashes      Hashes          `json:"hashes"`
+	Permissions []string        `json:"permissions"`
+	Metadata    []Metadata      `json:"metadata"`
+	Certificate CertificateInfo `json:"certificate"`
+	PlayStore   PlayStoreInfo   `json:"playstore"`
+	Koodous     KoodousInfo     `json:"koodous"`
 }
 
-type GeneralInfoApk struct {
+// GeneralInfo - struct for packagename, apk
+// version, main activity and SDK values
+type GeneralInfo struct {
 	PackageName  string `json:"packagename"`
 	Version      string `json:"version"`
 	MainActivity string `json:"mainactivity"`
@@ -61,18 +64,21 @@ type GeneralInfoApk struct {
 	MinimumSdk   string `json:"minimumsdk"`
 }
 
-type HashApk struct {
+// Hashes - struct for hash values
+type Hashes struct {
 	Md5    string `json:"md5"`
 	Sha1   string `json:"sha1"`
 	Sha256 string `json:"sha256"`
 }
 
+// Metadata - struct for metadata
 type Metadata struct {
 	MetadataName  string `json:"name"`
 	MetadataValue string `json:"value,omitempty"`
 }
 
-type CertificateInfoApk struct {
+// CertificateInfo - struct for certificate info
+type CertificateInfo struct {
 	Serial    string `json:"serial"`
 	Sha1      string `json:"sha1"`
 	Subject   string `json:"subject"`
@@ -81,7 +87,8 @@ type CertificateInfoApk struct {
 	ValidTo   string `json:"validto"`
 }
 
-type PlayStoreInfoApk struct {
+// PlayStoreInfo - struct for Play Store info
+type PlayStoreInfo struct {
 	Url       string    `json:"url"`
 	Version   string    `json:"version"`
 	Summary   string    `json:"summary"`
@@ -91,13 +98,15 @@ type PlayStoreInfoApk struct {
 	Score     float64   `json:"score"`
 }
 
+// Developer - struct for info about the developer
 type Developer struct {
 	Name string `json:"name"`
 	Id   string `json:"id"`
 	Mail string `json:"mail"`
 }
 
-type KoodousInfoApk struct {
+// Developer - struct for info gathered from Koodous
+type KoodousInfo struct {
 	Analyzed bool   `json:"analyzed"`
 	Detected bool   `json:"detected"`
 	Url      string `json:"koodousurl"`
