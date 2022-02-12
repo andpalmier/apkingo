@@ -2,3 +2,5 @@ build
 go.sum
 test
 .vscode
+dist/
+.goreleaser.yaml
