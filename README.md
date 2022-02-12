@@ -9,26 +9,39 @@
   </p>
 </p>
 
-apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions and metadata. Use the `-playstore` flag to search the app in the Play Store and retrieve additional information. Use the flag `-cert` to display certificate information contained in the apk.  
+apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the 
+specified apk from the Play Store and detect if it is malicious using [Koodous](https://koodous.com/).
 
 ## Usage
 
 After downloading the repository, navigate into the directory and build the project with `make apkingo`. This will create a folder `build`, containing an executable called `apkingo`. You can then run the executable with the following flags:
 
 - `-apk` to specify the path to the apk file (**required**)
-- `-cert` for printing the certificate information retrieved in the apk file (**sometimes it returns a conversion error, but it's still working!**)
-- `-playstore` for searching the app in the Play Store by its package name
+- `-json`	to specify the path of the json file where the results will be exported
 
-## Example
 
+## Screenshots
+
+apkingo analyzing snapseed:
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_snapseed.png?raw=true" />
+</p><br><br>
 
+apkingo analyzing F-Droid:
+<p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_f-droid.png?raw=true" />
+</p><br><br>
+
+apkingo analyzing an android malware:
+<p align="center">
+  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_malware.png?raw=true" />
+  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_malware1.png?raw=true" />
 </p>
 
-## Libraries used
+## Non-standard libraries used
 
 - [shogo81148/androidbinary](https://github.com/shogo82148/androidbinary)
 - [avast/apkverifier](https://github.com/avast/apkverifier)
 - [n0madic/google-play-scraper](https://github.com/n0madic/google-play-scraper)
+-	[parnurzeal/gorequest](https://github.com/parnurzeal/gorequest)
+-	[fatih/color](https://github.com/fatih/color)

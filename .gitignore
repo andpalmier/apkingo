@@ -1,3 +1,4 @@
 build
 go.sum
 test
+.vscode

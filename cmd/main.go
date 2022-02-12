@@ -3,73 +3,86 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-
 	"github.com/shogo82148/androidbinary/apk"
+	"os"
+	"path/filepath"
 )
 
 /*
 
 apkingo is a tool written in Go to get detailed information about an apk file. apkingo will
-explore the given file to get details on the apk, such as package name, target SDK, permissions
-and metadata.
+explore the given file to get details on the apk, such as package name, target SDK, permissions,
+metadata, certificate serial and issuer. The tool will also retrieve information about the
+specified apk from the Play Store and Koodous.
 
 After downloading the repository, navigate into the directory and build the project with make
 apkingo. This will create a folder build, containing an executable called apkingo. You can then
 run the executable with the following flags:
 
--apk to specify the path to the apk file (required)
--cert for printing the certificate information retrieved in the apk file (sometimes it returns
-	a conversion error, but it's still working!)
--playstore for searching the app in the Play Store by its package name
+-apk 	to specify the path to the apk file (required)
+-json	to specify the path of the json file where the results will be exported (optional)
 
 */
 
 var err error
 var androidapp AndroidApp
 var apkpath string
-var cert bool
-var playstore bool
+var jsonfile string
 
+// init() - parse flags
 func init() {
 	flag.StringVar(&apkpath, "apk", "", "specify apk path")
-	flag.BoolVar(&cert, "cert", false, "get certificate info")
-	flag.BoolVar(&playstore, "playstore", false, "search app in Play Store by package name")
+	flag.StringVar(&jsonfile, "json", "", "specify json file to export findings in json")
 }
 
+// main()
 func main() {
 	flag.Parse()
 
 	// load the apk
-	androidapp.path = apkpath
-	pkg, err := apk.OpenFile(androidapp.path)
+	pkg, err := apk.OpenFile(apkpath)
 	if err != nil {
 		fmt.Println("error opening the apk file, be sure to use '-apk' to specify the file path")
 		os.Exit(1)
 	}
 	defer pkg.Close()
-	androidapp.apk = *pkg
+	androidapp.setApkGeneralInfo(*pkg)
+	androidapp.setPermissions(*pkg)
+	androidapp.setMetadata(*pkg)
 
 	// extract hash values
-	if err = androidapp.getHashValues(); err != nil {
+	if err = androidapp.setHashValues(apkpath); err != nil {
 		fmt.Printf("error calculating hash values: %s\n", err.Error())
 		os.Exit(1)
 	}
-
-	// get certificate info
-	if cert {
-		if err = androidapp.getCertInfo(); err != nil {
-			fmt.Printf("error retrieving certificate information: %s\n", err.Error())
-		}
+	// extract certificate info
+	certinfo, err := androidapp.getCertInfo(apkpath)
+	if err != nil {
+		androidapp.Certificate.Issuer = ""
+	} else {
+		androidapp.setCertInfo(*certinfo)
 	}
-
-	// search the app in the Play Store by package name
-	if playstore {
-		if err = androidapp.searchPlayStore(); err != nil {
-			androidapp.playStoreFound = false
-		}
+	// get Play Store info
+	if playstoreinfo, err := androidapp.searchPlayStore(); err != nil {
+		androidapp.PlayStore.Url = ""
+	} else {
+		androidapp.setPlayStoreInfo(playstoreinfo)
+	}
+	// get Koodous info
+	err = androidapp.getKoodousDetection()
+	if err != nil {
+		androidapp.Koodous.Url = ""
+		fmt.Printf("%s", err)
 	}
 
 	// print result
-	androidapp.printAndroidInfo()
+	androidapp.printAll()
+
+	// save result as json
+	if jsonfile != "" {
+		if filepath.Ext(jsonfile) != ".json" {
+			jsonfile = jsonfile + ".json"
+		}
+		androidapp.ExportJson(jsonfile)
+	}
 }
