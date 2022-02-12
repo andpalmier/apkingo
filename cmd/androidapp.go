@@ -105,7 +105,7 @@ type Developer struct {
 	Mail string `json:"mail"`
 }
 
-// Developer - struct for info gathered from Koodous
+// KoodousInfo - struct for info gathered from Koodous
 type KoodousInfo struct {
 	Analyzed bool   `json:"analyzed"`
 	Detected bool   `json:"detected"`
