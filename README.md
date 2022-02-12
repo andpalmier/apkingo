@@ -14,11 +14,15 @@ specified apk from the Play Store and detect if it is malicious using [Koodous](
 
 ## Usage
 
-After downloading the repository, navigate into the directory and build the project with `make apkingo`. This will create a folder `build`, containing an executable called `apkingo`. You can then run the executable with the following flags:
+You can can download apkingo from the [Releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by downloading the repository, navigating into the `apkingo` directory and building the project with `make apkingo`. This will create a folder `build`, containing the resulting executable.
+
+You can then run apkingo with the following flags:
 
 - `-apk` to specify the path to the apk file (**required**)
 - `-json`	to specify the path of the json file where the results will be exported
 
+Example:
+```apkingo -apk snapseed.apk -json snapseed_analysis.json```
 
 ## Screenshots
 
