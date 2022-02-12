@@ -1,4 +1,4 @@
-module github.com/andpalmier
+module github.com/andpalmier/apkingo
 
 go 1.17
 

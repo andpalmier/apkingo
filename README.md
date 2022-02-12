@@ -9,7 +9,7 @@
   </p>
 </p>
 
-apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the 
+apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the
 specified apk from the Play Store and detect if it is malicious using [Koodous](https://koodous.com/).
 
 ## Usage
@@ -25,17 +25,17 @@ After downloading the repository, navigate into the directory and build the proj
 apkingo analyzing snapseed:
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_snapseed.png?raw=true" />
-</p><br><br>
+</p>
 
 apkingo analyzing F-Droid:
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_f-droid.png?raw=true" />
-</p><br><br>
+</p>
 
 apkingo analyzing an android malware:
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_malware.png?raw=true" />
-  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_malware1.png?raw=true" />
+  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/screen_malware2.png?raw=true" />
 </p>
 
 ## Non-standard libraries used
@@ -43,5 +43,5 @@ apkingo analyzing an android malware:
 - [shogo81148/androidbinary](https://github.com/shogo82148/androidbinary)
 - [avast/apkverifier](https://github.com/avast/apkverifier)
 - [n0madic/google-play-scraper](https://github.com/n0madic/google-play-scraper)
--	[parnurzeal/gorequest](https://github.com/parnurzeal/gorequest)
--	[fatih/color](https://github.com/fatih/color)
+- [parnurzeal/gorequest](https://github.com/parnurzeal/gorequest)
+- [fatih/color](https://github.com/fatih/color)
