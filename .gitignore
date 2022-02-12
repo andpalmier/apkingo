@@ -3,4 +3,3 @@ go.sum
 test
 .vscode
 dist/
-cmd/.goreleaser.yaml
