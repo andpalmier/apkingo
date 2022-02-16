@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"reflect"
+
+	"github.com/fatih/color"
 )
 
 // colors to improve readability
@@ -47,7 +48,22 @@ func (androidapp *AndroidApp) printHash() {
 func (androidapp *AndroidApp) printPlayStoreInfo() {
 	yellow.Println("\n* Play Store")
 	if androidapp.PlayStore.Url != "" {
-		printStruct(androidapp.PlayStore)
+		fmt.Printf("Url:\t\t")
+		cyan.Printf("%v\n", androidapp.PlayStore.Url)
+		fmt.Printf("Version:\t")
+		cyan.Printf("%v\n", androidapp.PlayStore.Version)
+		fmt.Printf("Summary:\t")
+		cyan.Printf("%s\n", androidapp.PlayStore.Summary)
+		fmt.Printf("Developer (id):\t")
+		cyan.Printf("%s (%s)\n", androidapp.PlayStore.Developer.Name, androidapp.PlayStore.Developer.Id)
+		fmt.Printf("Developer mail:\t")
+		cyan.Printf("%s\n", androidapp.PlayStore.Developer.Mail)
+		fmt.Printf("Release:\t")
+		cyan.Printf("%s\n", androidapp.PlayStore.Release)
+		fmt.Printf("Installs:\t")
+		cyan.Printf("%s\n", androidapp.PlayStore.Installs)
+		fmt.Printf("Score:\t\t")
+		cyan.Printf("%v\n", androidapp.PlayStore.Score)
 	} else {
 		italic.Println("app not found in Play Store")
 	}
