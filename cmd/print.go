@@ -47,7 +47,7 @@ func (androidapp *AndroidApp) printHash() {
 func (androidapp *AndroidApp) printPlayStoreInfo() {
 	yellow.Println("\n* Play Store")
 	if androidapp.PlayStore.Url != "" {
-		printStruct(androidapp.Hashes)
+		printStruct(androidapp.PlayStore)
 	} else {
 		italic.Println("app not found in Play Store")
 	}
