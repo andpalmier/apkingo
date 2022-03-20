@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
-	"encoding/json"
 	"github.com/VirusTotal/vt-go"
+	"time"
 )
 
 // getVTDetection() - get apk info from VirusTotal using sha256 hash and store them in the androidapp struct
@@ -14,7 +14,7 @@ func (androidapp *AndroidApp) getVTDetection(apiKey string) error {
 	vtitem := VirusTotalInfo{}
 	file, err := client.GetObject(vt.URL("files/" + androidapp.Hashes.Sha256))
 	if err != nil {
-		return errors.New("error performing VirusTotal request")
+		return errors.New("[!] Error performing VirusTotal request, please check your API key")
 	} else {
 		vtitem.Url = fmt.Sprintf("https://virustotal.com/gui/file/%s", androidapp.Hashes.Sha256)
 	}
@@ -38,7 +38,7 @@ func (androidapp *AndroidApp) getVTDetection(apiKey string) error {
 	if err == nil {
 		vtitem.Reput = reputation
 	}
-	
+
 	votes, err := file.Get("total_votes")
 	if err == nil {
 		if votesmap := votes.(map[string]interface{}); votesmap != nil {
@@ -69,8 +69,8 @@ func (androidapp *AndroidApp) getVTDetection(apiKey string) error {
 	icon, err := file.Get("main_icon")
 	if err == nil {
 		if iconmap := icon.(map[string]interface{}); iconmap != nil {
-			vtitem.Icon.Md5 = fmt.Sprintf("%s",iconmap["raw_md5"])
-			vtitem.Icon.Dhash  = fmt.Sprintf("%s",iconmap["dhash"])
+			vtitem.Icon.Md5 = fmt.Sprintf("%s", iconmap["raw_md5"])
+			vtitem.Icon.Dhash = fmt.Sprintf("%s", iconmap["dhash"])
 		}
 	}
 

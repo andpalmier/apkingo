@@ -54,7 +54,7 @@ type AndroidApp struct {
 	Koodous     KoodousInfo     `json:"koodous"`
 	// using a pointer here to avoid exporting VT info
 	// in case VT api was not specified
-	VirusTotal	*VirusTotalInfo	`json:"virustotal,omitempty"`
+	VirusTotal *VirusTotalInfo `json:"virustotal,omitempty"`
 }
 
 // GeneralInfo - struct for packagename, apk
@@ -110,46 +110,46 @@ type Developer struct {
 
 // KoodousInfo - struct for info gathered from Koodous
 type KoodousInfo struct {
+	Url      string `json:"koodousurl"`
 	Analyzed bool   `json:"analyzed"`
 	Detected bool   `json:"detected"`
-	Url      string `json:"koodousurl"`
 }
 
 // VTAnalysStats - struct for analysis details by VirusTotal
 type VTAnalysStats struct {
-	Harmless			int64 `json:"harmless"`
-	TypeUnsupported		int64 `json:"typeunsupported"`
-	Suspicious			int64 `json:"suspicious"`
-	ConfirmedTimeout	int64 `json:"confirmedtimeout"`
-	Timeout				int64 `json:"timeout"`
-	Failure				int64 `json:"failure"`
-	Malicious			int64 `json:"malicious"`
-	Undetected			int64 `json:"undetected"`
+	Harmless         int64 `json:"harmless"`
+	TypeUnsupported  int64 `json:"typeunsupported"`
+	Suspicious       int64 `json:"suspicious"`
+	ConfirmedTimeout int64 `json:"confirmedtimeout"`
+	Timeout          int64 `json:"timeout"`
+	Failure          int64 `json:"failure"`
+	Malicious        int64 `json:"malicious"`
+	Undetected       int64 `json:"undetected"`
 }
 
 // VTVotes - struct for vote details by VirusTotal
 type VTVotes struct {
-	Harmless	int64 `json:"harmless"`
-	Malicious	int64 `json:"malicious"`
+	Harmless  int64 `json:"harmless"`
+	Malicious int64 `json:"malicious"`
 }
 
 // VTIcon - struct for icon details by VirusTotal
 type VTIcon struct {
-	Md5 	string	`json:"md5"`
-	Dhash	string	`json:"dhash"`
+	Md5   string `json:"md5"`
+	Dhash string `json:"dhash"`
 }
 
 // VTVirusTotalInfo - struct for info gathered from VirusTotal
 type VirusTotalInfo struct {
-	Names	 		[]string 		`json:"names"`
-	FirstSubmit 	string 			`json:"firstsubmitted"`
-	TimesSubmit 	int64  			`json:"timessubmitted"`
-	LastAnalysis	string 			`json:"lastanalysis"`
-	AnalysStats 	VTAnalysStats 	`json:"analysisstats"`
-	Reput	 		int64  			`json:"reputation"`
-	Votes			VTVotes			`json:"votes"`
-	Icon			VTIcon			`json:"icon"`
-	Url      		string 			`json:"virustotalurl"`
+	Url          string        `json:"virustotalurl"`
+	Names        []string      `json:"names"`
+	FirstSubmit  string        `json:"firstsubmitted"`
+	TimesSubmit  int64         `json:"timessubmitted"`
+	LastAnalysis string        `json:"lastanalysis"`
+	AnalysStats  VTAnalysStats `json:"analysisstats"`
+	Reput        int64         `json:"reputation"`
+	Votes        VTVotes       `json:"votes"`
+	Icon         VTIcon        `json:"icon"`
 }
 
 // SetPermissions(apk) - get the permission from apk and store
@@ -184,13 +184,10 @@ func (androidapp *AndroidApp) setMetadata(apk apk.Apk) {
 // SetGeneralInfo(apk) - get general info from apk and
 // store them in the androidapp struct
 func (androidapp *AndroidApp) setApkGeneralInfo(apk apk.Apk) {
-	// get apk name
 	androidapp.Name, err = apk.Label(nil)
 	if err != nil {
 		androidapp.Name = ""
 	}
-
-	// get package name, version and main activity
 	androidapp.GeneralInfo.PackageName = apk.PackageName()
 	androidapp.GeneralInfo.Version, err = apk.Manifest().VersionName.String()
 	if err != nil {
@@ -200,8 +197,6 @@ func (androidapp *AndroidApp) setApkGeneralInfo(apk apk.Apk) {
 	if err != nil {
 		androidapp.GeneralInfo.MainActivity = ""
 	}
-
-	// get target and minimum SDK
 	sdktarget, err := apk.Manifest().SDK.Target.Int32()
 	if err != nil {
 		androidapp.GeneralInfo.TargetSdk = ""

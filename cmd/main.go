@@ -13,7 +13,9 @@ import (
 apkingo is a tool written in Go to get detailed information about an apk file. apkingo will
 explore the given file to get details on the apk, such as package name, target SDK, permissions,
 metadata, certificate serial and issuer. The tool will also retrieve information about the
-specified apk from the Play Store and Koodous.
+specified apk from the Play Store, detect if it is malicious using Koodous and get information
+about the apk from VirusTotal (if a valid api key is provided).
+
 
 After downloading the repository, navigate into the directory and build the project with make
 apkingo. This will create a folder build, containing an executable called apkingo. You can then
@@ -21,7 +23,7 @@ run the executable with the following flags:
 
 -apk 	to specify the path to the apk file (required)
 -json	to specify the path of the json file where the results will be exported (optional)
--vt		to specify VirusTotal api (optional)
+-vt		to specify VirusTotal api key (optional)
 
 */
 
@@ -78,17 +80,19 @@ func main() {
 		fmt.Printf("%s", err)
 	}
 
+	// get VirusTotal info if api key is provided
 	if vtapi != "" {
 		err = androidapp.getVTDetection(vtapi)
 		if err != nil {
 			fmt.Println(err)
+			vtapi = ""
 		}
 	}
 
 	// print result
 	androidapp.printAll()
 
-	// save result as json
+	// save result as json if json path is provided
 	if jsonfile != "" {
 		if filepath.Ext(jsonfile) != ".json" {
 			jsonfile = jsonfile + ".json"

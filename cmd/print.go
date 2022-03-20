@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"reflect"
 	"strings"
-	"github.com/fatih/color"
 )
 
 // colors to improve readability
@@ -83,6 +83,8 @@ func (androidapp *AndroidApp) printCertInfo() {
 func (androidapp *AndroidApp) printKoodousInfo() {
 	yellow.Println("\n* Koodous")
 	if androidapp.Koodous.Url != "" {
+		fmt.Printf("URL:\t\t")
+		cyan.Printf("%s\n", androidapp.Koodous.Url)
 		fmt.Printf("Analyzed:\t")
 		cyan.Printf("%v\n", androidapp.Koodous.Analyzed)
 		fmt.Printf("Detected:\t")
@@ -91,8 +93,6 @@ func (androidapp *AndroidApp) printKoodousInfo() {
 		} else {
 			cyan.Printf("false\n")
 		}
-		fmt.Printf("URL:\t\t")
-		cyan.Printf("%s\n", androidapp.Koodous.Url)
 	} else {
 		italic.Printf("impossible to retrieve koodous info\n")
 	}
@@ -129,6 +129,17 @@ func (androidapp *AndroidApp) printMetadata() {
 			}
 		}
 	}
+}
+
+// printBanner() - like the cool kids
+func printBanner() {
+	var Banner string = `
+	┌─┐┌─┐┬┌─┬┌┐┌┌─┐┌─┐
+	├─┤├─┘├┴┐│││││ ┬│ │
+	┴ ┴┴  ┴ ┴┴┘└┘└─┘└─┘
+by @andpalmier
+`
+	cyan.Println(Banner)
 }
 
 // printVTLastAnalysisResults() - print analysis results from VirusTotal
@@ -193,8 +204,10 @@ func (androidapp *AndroidApp) printVTVotes() {
 func (androidapp *AndroidApp) printVTInfo() {
 	yellow.Println("\n* VirusTotal")
 	if androidapp.VirusTotal.Url != "" {
+		fmt.Printf("URL:\t\t")
+		cyan.Printf("%s\n", androidapp.VirusTotal.Url)
 		fmt.Printf("Names:\t\t")
-		cyan.Printf("%s\n", strings.Join(androidapp.VirusTotal.Names,", "))
+		cyan.Printf("%s\n", strings.Join(androidapp.VirusTotal.Names, ", "))
 		fmt.Printf("SubmissionDate:\t")
 		cyan.Printf("%s\n", androidapp.VirusTotal.FirstSubmit)
 		fmt.Printf("# Submissions:\t")
@@ -211,8 +224,6 @@ func (androidapp *AndroidApp) printVTInfo() {
 		}
 		androidapp.printVTVotes()
 		androidapp.printVTIcon()
-		fmt.Printf("URL:\t\t")
-		cyan.Printf("%s\n", androidapp.VirusTotal.Url)
 	} else {
 		italic.Println("app not found in VirusTotal")
 	}
@@ -220,6 +231,7 @@ func (androidapp *AndroidApp) printVTInfo() {
 
 // printAndroidInfo() - print all the information
 func (androidapp *AndroidApp) printAll() {
+	printBanner()
 	name := androidapp.Name
 	yellow.Printf("\nApp name:\t")
 	if name != "" {
