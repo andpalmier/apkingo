@@ -21,6 +21,7 @@ run the executable with the following flags:
 
 -apk 	to specify the path to the apk file (required)
 -json	to specify the path of the json file where the results will be exported (optional)
+-vt		to specify VirusTotal api (optional)
 
 */
 
@@ -28,11 +29,13 @@ var err error
 var androidapp AndroidApp
 var apkpath string
 var jsonfile string
+var vtapi string
 
 // init() - parse flags
 func init() {
 	flag.StringVar(&apkpath, "apk", "", "specify apk path")
 	flag.StringVar(&jsonfile, "json", "", "specify json file to export findings in json")
+	flag.StringVar(&vtapi, "vt", "", "specify VirusTotal api (required for VT analysis)")
 }
 
 // main()
@@ -73,6 +76,13 @@ func main() {
 	if err != nil {
 		androidapp.Koodous.Url = ""
 		fmt.Printf("%s", err)
+	}
+
+	if vtapi != "" {
+		err = androidapp.getVTDetection(vtapi)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	// print result

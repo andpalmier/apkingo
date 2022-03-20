@@ -52,6 +52,9 @@ type AndroidApp struct {
 	Certificate CertificateInfo `json:"certificate"`
 	PlayStore   PlayStoreInfo   `json:"playstore"`
 	Koodous     KoodousInfo     `json:"koodous"`
+	// using a pointer here to avoid exporting VT info
+	// in case VT api was not specified
+	VirusTotal	*VirusTotalInfo	`json:"virustotal,omitempty"`
 }
 
 // GeneralInfo - struct for packagename, apk
@@ -60,8 +63,8 @@ type GeneralInfo struct {
 	PackageName  string `json:"packagename"`
 	Version      string `json:"version"`
 	MainActivity string `json:"mainactivity"`
-	TargetSdk    string `json:"targetsdk"`
 	MinimumSdk   string `json:"minimumsdk"`
+	TargetSdk    string `json:"targetsdk"`
 }
 
 // Hashes - struct for hash values
@@ -110,6 +113,43 @@ type KoodousInfo struct {
 	Analyzed bool   `json:"analyzed"`
 	Detected bool   `json:"detected"`
 	Url      string `json:"koodousurl"`
+}
+
+// VTAnalysStats - struct for analysis details by VirusTotal
+type VTAnalysStats struct {
+	Harmless			int64 `json:"harmless"`
+	TypeUnsupported		int64 `json:"typeunsupported"`
+	Suspicious			int64 `json:"suspicious"`
+	ConfirmedTimeout	int64 `json:"confirmedtimeout"`
+	Timeout				int64 `json:"timeout"`
+	Failure				int64 `json:"failure"`
+	Malicious			int64 `json:"malicious"`
+	Undetected			int64 `json:"undetected"`
+}
+
+// VTVotes - struct for vote details by VirusTotal
+type VTVotes struct {
+	Harmless	int64 `json:"harmless"`
+	Malicious	int64 `json:"malicious"`
+}
+
+// VTIcon - struct for icon details by VirusTotal
+type VTIcon struct {
+	Md5 	string	`json:"md5"`
+	Dhash	string	`json:"dhash"`
+}
+
+// VTVirusTotalInfo - struct for info gathered from VirusTotal
+type VirusTotalInfo struct {
+	Names	 		[]string 		`json:"names"`
+	FirstSubmit 	string 			`json:"firstsubmitted"`
+	TimesSubmit 	int64  			`json:"timessubmitted"`
+	LastAnalysis	string 			`json:"lastanalysis"`
+	AnalysStats 	VTAnalysStats 	`json:"analysisstats"`
+	Reput	 		int64  			`json:"reputation"`
+	Votes			VTVotes			`json:"votes"`
+	Icon			VTIcon			`json:"icon"`
+	Url      		string 			`json:"virustotalurl"`
 }
 
 // SetPermissions(apk) - get the permission from apk and store
