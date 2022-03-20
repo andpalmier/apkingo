@@ -15,9 +15,9 @@ func (androidapp *AndroidApp) getVTDetection(apiKey string) error {
 	file, err := client.GetObject(vt.URL("files/" + androidapp.Hashes.Sha256))
 	if err != nil {
 		return errors.New("[!] Error performing VirusTotal request, please check your API key")
-	} else {
-		vtitem.Url = fmt.Sprintf("https://virustotal.com/gui/file/%s", androidapp.Hashes.Sha256)
 	}
+	
+	vtitem.Url = fmt.Sprintf("https://virustotal.com/gui/file/%s", androidapp.Hashes.Sha256)
 
 	fsd, err := file.GetTime("first_submission_date")
 	if err == nil {

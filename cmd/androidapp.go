@@ -139,7 +139,7 @@ type VTIcon struct {
 	Dhash string `json:"dhash"`
 }
 
-// VTVirusTotalInfo - struct for info gathered from VirusTotal
+// VirusTotalInfo - struct for info gathered from VirusTotal
 type VirusTotalInfo struct {
 	Url          string        `json:"virustotalurl"`
 	Names        []string      `json:"names"`
