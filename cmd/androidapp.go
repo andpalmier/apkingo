@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/shogo82148/androidbinary/apk"
 )
 
 // mapping SDK to Android version
 var androidname = map[int]string{
+	0:  "Not found",
 	1:  "Android 1",
 	2:  "Android 1.1",
 	3:  "Android 1.5",
@@ -50,11 +52,9 @@ type AndroidApp struct {
 	Permissions []string        `json:"permissions"`
 	Metadata    []Metadata      `json:"metadata"`
 	Certificate CertificateInfo `json:"certificate"`
-	PlayStore   PlayStoreInfo   `json:"playstore"`
-	Koodous     KoodousInfo     `json:"koodous"`
-	// using a pointer here to avoid exporting VT info
-	// in case VT api was not specified
-	VirusTotal *VirusTotalInfo `json:"virustotal,omitempty"`
+	PlayStore   *PlayStoreInfo  `json:"playstore,omitempty"`
+	Koodous     *KoodousInfo    `json:"koodous,omitempty"`
+	VirusTotal  *VirusTotalInfo `json:"virustotal,omitempty"`
 }
 
 // GeneralInfo - struct for packagename, apk
@@ -92,13 +92,16 @@ type CertificateInfo struct {
 
 // PlayStoreInfo - struct for Play Store info
 type PlayStoreInfo struct {
-	Url       string    `json:"url"`
-	Version   string    `json:"version"`
-	Summary   string    `json:"summary"`
-	Developer Developer `json:"developer"`
-	Release   string    `json:"releasedate"`
-	Installs  string    `json:"numberinstalls"`
-	Score     float64   `json:"score"`
+	Url           string  `json:"url"`
+	Version       string  `json:"version"`
+	Summary       string  `json:"summary"`
+	Release       string  `json:"releasedate"`
+	Installs      string  `json:"numberinstalls"`
+	Score         float64 `json:"score"`
+	Developer     string  `json:"developer"`
+	DeveloperId   string  `json:"developer_id"`
+	DeveloperMail string  `json:"developer_mail"`
+	DeveloperURL  string  `json:"developer_URL"`
 }
 
 // Developer - struct for info about the developer
@@ -108,23 +111,37 @@ type Developer struct {
 	Mail string `json:"mail"`
 }
 
-// KoodousInfo - struct for info gathered from Koodous
+// KoodousInfo - struct for storing resuls from Koodous
 type KoodousInfo struct {
-	Url      string `json:"koodousurl"`
-	Analyzed bool   `json:"analyzed"`
-	Detected bool   `json:"detected"`
+	Url            string        `json:"url"`
+	Id             string        `json:"id"`
+	App            string        `json:"app"`
+	PackageName    string        `json:"package_name"`
+	Company        string        `json:"company"`
+	Version        string        `json:"version"`
+	IconLink       string        `json:"image"`
+	Size           int64         `json:"size"`
+	Tags           []interface{} `json:"tags"`
+	Trusted        bool          `json:"is_trusted"`
+	Installed      bool          `json:"is_installed"`
+	Rating         int64         `json:"rating"`
+	Detected       bool          `json:"is_detected"`
+	Corrupted      bool          `json:"is_corrupted"`
+	StaticAnalyzed bool          `json:"is_static_analyzed"`
+	DynamAnalyzed  bool          `json:"is_dynamic_analyzed"`
+	SubmissionDate string        `json:"created_at"`
 }
 
 // VTAnalysStats - struct for analysis details by VirusTotal
 type VTAnalysStats struct {
-	Harmless         int64 `json:"harmless"`
-	TypeUnsupported  int64 `json:"typeunsupported"`
-	Suspicious       int64 `json:"suspicious"`
-	ConfirmedTimeout int64 `json:"confirmedtimeout"`
-	Timeout          int64 `json:"timeout"`
-	Failure          int64 `json:"failure"`
-	Malicious        int64 `json:"malicious"`
-	Undetected       int64 `json:"undetected"`
+	Harmless       int64 `json:"harmless"`
+	UnsupportType  int64 `json:"typeunsupported"`
+	Suspicious     int64 `json:"suspicious"`
+	ConfirmTimeout int64 `json:"confirmedtimeout"`
+	Timeout        int64 `json:"timeout"`
+	Failure        int64 `json:"failure"`
+	Malicious      int64 `json:"malicious"`
+	Undetected     int64 `json:"undetected"`
 }
 
 // VTVotes - struct for vote details by VirusTotal
@@ -139,6 +156,15 @@ type VTIcon struct {
 	Dhash string `json:"dhash"`
 }
 
+// VTAndroguard - struct for Androguard details by VirusTotal
+type VTAndroguard struct {
+	Providers     []interface{} `json:"providers"`
+	Receivers     []interface{} `json:"receivers"`
+	Services      []interface{} `json:"services"`
+	IntereStrings []interface{} `json:"interestingstrings"`
+	DangerPermis  []interface{} `json:"dangerpermissions"`
+}
+
 // VirusTotalInfo - struct for info gathered from VirusTotal
 type VirusTotalInfo struct {
 	Url          string        `json:"virustotalurl"`
@@ -146,10 +172,11 @@ type VirusTotalInfo struct {
 	FirstSubmit  string        `json:"firstsubmitted"`
 	TimesSubmit  int64         `json:"timessubmitted"`
 	LastAnalysis string        `json:"lastanalysis"`
-	AnalysStats  VTAnalysStats `json:"analysisstats"`
 	Reput        int64         `json:"reputation"`
-	Votes        VTVotes       `json:"votes"`
 	Icon         VTIcon        `json:"icon"`
+	AnalysStats  VTAnalysStats `json:"analysisstats"`
+	Votes        VTVotes       `json:"votes"`
+	Androguard   VTAndroguard  `json:"androguard"`
 }
 
 // SetPermissions(apk) - get the permission from apk and store
@@ -201,12 +228,14 @@ func (androidapp *AndroidApp) setApkGeneralInfo(apk apk.Apk) {
 	if err != nil {
 		androidapp.GeneralInfo.TargetSdk = ""
 	} else {
-		androidapp.GeneralInfo.TargetSdk = fmt.Sprintf("%d (%s)", sdktarget, androidname[int(sdktarget)])
+		androidapp.GeneralInfo.TargetSdk = fmt.Sprintf("%d (%s)",
+			sdktarget, androidname[int(sdktarget)])
 	}
 	sdkmin, err := apk.Manifest().SDK.Min.Int32()
 	if err != nil {
 		androidapp.GeneralInfo.MinimumSdk = ""
 	} else {
-		androidapp.GeneralInfo.MinimumSdk = fmt.Sprintf("%d (%s)", sdkmin, androidname[int(sdkmin)])
+		androidapp.GeneralInfo.MinimumSdk = fmt.Sprintf("%d (%s)",
+			sdkmin, androidname[int(sdkmin)])
 	}
 }

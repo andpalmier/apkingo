@@ -6,12 +6,12 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"hash"
-	"io/ioutil"
+	"os"
 )
 
 // getFileHash(h, filepath) - hash the file in the given path with the selected hash
 func getFileHash(h hash.Hash, filepath string) ([]byte, error) {
-	file, err := ioutil.ReadFile(filepath)
+	file, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}

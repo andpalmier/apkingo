@@ -1,6 +1,6 @@
 build
-go.sum
 test
+dist
 .vscode
-dist/
 .goreleaser.yaml
+dist/

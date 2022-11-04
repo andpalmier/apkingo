@@ -9,18 +9,20 @@
   </p>
 </p>
 
-apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the
-specified apk from the Play Store, detect if it is malicious using [Koodous](https://koodous.com/) and get information about the apk from [VirusTotal](https://virustotal.com) (if a valid api key is provided).
+apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the specified apk from the Play Store, and (if valid API keys are provided) from [Koodous](https://koodous.com/) and [VirusTotal](https://virustotal.com).
+
+## Installation
+
+You can can download apkingo from the [Releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by downloading the repository, navigating into the `apkingo` directory and building the project with `make apkingo`. This will create a  `build` folder, containing the resulting executable.
 
 ## Usage
 
-You can can download apkingo from the [Releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by downloading the repository, navigating into the `apkingo` directory and building the project with `make apkingo`. This will create a folder `build`, containing the resulting executable.
-
-You can then run apkingo with the following flags:
+You can run apkingo with the following flags:
 
 - `-apk` to specify the path to the apk file (**required**)
-- `-json`	to specify the path of the json file where the results will be exported
-- `-vt`	to specify VirusTotal api key
+- `-json` to specify the path of the json file where the results will be exported
+- `-vt` to specify VirusTotal API key (required for VirusTotal analysis)
+- `-k` to specify Koodous API key (required for Koodous analysis)
 
 Example:
 ```apkingo -apk snapseed.apk -json snapseed_analysis.json```
@@ -52,9 +54,9 @@ Here is the full list of information which apkingo can retrieve:
 - Permissions
 - Metadata
 - Certificate information: serial, sha1, subject, issuer, validity date and expiration date
-- Play Store information: Play Store url, version, summary, developer name and id, developer mail, release date, number of installations and score
-- Koodous info (no api key required): Koodous url, analyzed (true or false) and detected as malicious (true or false) 
-- VirusTotal info (api key required): VirusTotal url, apk names, first submission date, number of submissions, last analysis date and results, reputation, community votes (harmless and malicious), md5 and dhash of icon
+- Play Store information: Play Store url, version, summary, release date, number of installations, score, developer name, developer ID, developer mail and developer website
+- Koodous info (API key required): Koodous url, Koodous ID, app name, package name, company, version, Koodous link to the app icon, size, Koodous tags, trusted (boolean), installed on devices (boolean), Koodous rating, detected (boolean), corrupted (boolean), statically analyzed (boolean), dynamically analyzed (boolean) and date when the app was submitted to Koodous for the first time
+- VirusTotal info (API key required): VirusTotal url, apk names, first submission date, number of submissions, last analysis date and results, reputation, community votes (harmless and malicious), md5 and dhash of icon, providers, receivers, services, interesting string and permissions that are considered dangerous.
 
 ## 3rd party libraries used
 

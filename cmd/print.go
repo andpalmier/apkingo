@@ -2,32 +2,49 @@ package main
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"reflect"
-	"strings"
+
+	"github.com/fatih/color"
 )
 
 // colors to improve readability
 var italic = color.New(color.FgWhite, color.Italic)
 var yellow = color.New(color.FgYellow)
 var cyan = color.New(color.FgCyan)
+var red = color.New(color.FgRed)
 
 // printStruct() - print items in a struct with appropriate
 // spacing and colors
-func printStruct(s interface{}) {
+func printStruct(s interface{}, prefix string) {
 	items := reflect.ValueOf(s)
-	typeOfS := items.Type()
-
+	types := items.Type()
 	for i := 0; i < items.NumField(); i++ {
-		if len(typeOfS.Field(i).Name) > 6 {
-			fmt.Printf("%s:\t", typeOfS.Field(i).Name)
+		name := types.Field(i).Name
+		field := items.Field(i).Interface()
+		if len(name) > 6 {
+			fmt.Printf("%s%s:\t", prefix, name)
 		} else {
-			fmt.Printf("%s:\t\t", typeOfS.Field(i).Name)
+			fmt.Printf("%s%s:\t\t", prefix, name)
 		}
-		if items.Field(i).Interface() == "" {
+
+		leng := -1
+		fieldarr, check := field.([]interface{})
+		if check {
+			leng = len(fieldarr)
+		}
+
+		if field == "" || leng == 0 {
 			italic.Printf("not found\n")
+		} else if name == "Detected" && field == true {
+			red.Printf("true\n")
+		} else if name == "Rating" && field.(int64) < 0 {
+			red.Printf("%v\n", field)
+		} else if name == "Malicious" && field.(int64) > 0 {
+			red.Printf("%v\n", field)
+		} else if name == "DangerPermis" {
+			red.Printf("%v\n", field)
 		} else {
-			cyan.Printf("%v\n", items.Field(i).Interface())
+			cyan.Printf("%v\n", field)
 		}
 	}
 }
@@ -35,35 +52,20 @@ func printStruct(s interface{}) {
 // printGeneralInfo() - print general info section of the apk
 func (androidapp *AndroidApp) printGeneralInfo() {
 	yellow.Println("\n* General info")
-	printStruct(androidapp.GeneralInfo)
+	printStruct(androidapp.GeneralInfo, "")
 }
 
 // printHash() - print hashes
 func (androidapp *AndroidApp) printHash() {
 	yellow.Println("\n* Hash values")
-	printStruct(androidapp.Hashes)
+	printStruct(androidapp.Hashes, "")
 }
 
-// printPlayStoreInfo() - print Play Store
+// printPlayStoreInfo() - print Play Store info
 func (androidapp *AndroidApp) printPlayStoreInfo() {
 	yellow.Println("\n* Play Store")
-	if androidapp.PlayStore.Url != "" {
-		fmt.Printf("Url:\t\t")
-		cyan.Printf("%v\n", androidapp.PlayStore.Url)
-		fmt.Printf("Version:\t")
-		cyan.Printf("%v\n", androidapp.PlayStore.Version)
-		fmt.Printf("Summary:\t")
-		cyan.Printf("%s\n", androidapp.PlayStore.Summary)
-		fmt.Printf("Developer (id):\t")
-		cyan.Printf("%s (%s)\n", androidapp.PlayStore.Developer.Name, androidapp.PlayStore.Developer.Id)
-		fmt.Printf("Developer mail:\t")
-		cyan.Printf("%s\n", androidapp.PlayStore.Developer.Mail)
-		fmt.Printf("Release:\t")
-		cyan.Printf("%s\n", androidapp.PlayStore.Release)
-		fmt.Printf("Installs:\t")
-		cyan.Printf("%s\n", androidapp.PlayStore.Installs)
-		fmt.Printf("Score:\t\t")
-		cyan.Printf("%v\n", androidapp.PlayStore.Score)
+	if androidapp.PlayStore != nil {
+		printStruct(*androidapp.PlayStore, "")
 	} else {
 		italic.Println("app not found in Play Store")
 	}
@@ -73,28 +75,9 @@ func (androidapp *AndroidApp) printPlayStoreInfo() {
 func (androidapp *AndroidApp) printCertInfo() {
 	yellow.Println("\n* Certificate")
 	if androidapp.Certificate.Issuer != "" {
-		printStruct(androidapp.Certificate)
+		printStruct(androidapp.Certificate, "")
 	} else {
 		italic.Println("certificate not found")
-	}
-}
-
-// printKoodousInfo() - print certificate info
-func (androidapp *AndroidApp) printKoodousInfo() {
-	yellow.Println("\n* Koodous")
-	if androidapp.Koodous.Url != "" {
-		fmt.Printf("URL:\t\t")
-		cyan.Printf("%s\n", androidapp.Koodous.Url)
-		fmt.Printf("Analyzed:\t")
-		cyan.Printf("%v\n", androidapp.Koodous.Analyzed)
-		fmt.Printf("Detected:\t")
-		if androidapp.Koodous.Detected {
-			color.Red("apk detected as malicious\n")
-		} else {
-			cyan.Printf("false\n")
-		}
-	} else {
-		italic.Printf("impossible to retrieve koodous info\n")
 	}
 }
 
@@ -105,7 +88,7 @@ func (androidapp *AndroidApp) printPermissions() {
 		italic.Println("no permissions found")
 	} else {
 		for _, permission := range androidapp.Permissions {
-			cyan.Printf("%s\n", permission)
+			fmt.Printf("%s\n", permission)
 		}
 	}
 }
@@ -131,6 +114,55 @@ func (androidapp *AndroidApp) printMetadata() {
 	}
 }
 
+// printKoodousInfo() - print analysis results from Koodous
+func (androidapp *AndroidApp) printKoodousInfo() {
+	yellow.Println("\n* Koodous")
+	printStruct(*androidapp.Koodous, "")
+}
+
+// printVTInfo() - print VirusTotal info
+func (androidapp *AndroidApp) printVTInfo() {
+	yellow.Println("\n* VirusTotal")
+	if androidapp.VirusTotal.Url != "" {
+		fmt.Printf("URL:\t\t")
+		cyan.Printf("%s\n", androidapp.VirusTotal.Url)
+
+		fmt.Printf("Names:\t\t")
+		if len(androidapp.VirusTotal.Names) > 0 {
+			cyan.Printf("%v\n", androidapp.VirusTotal.Names)
+		} else {
+			italic.Println("not found")
+		}
+
+		fmt.Printf("SubmissionDate:\t")
+		cyan.Printf("%s\n", androidapp.VirusTotal.FirstSubmit)
+		fmt.Printf("#Submissions:\t")
+		cyan.Printf("%d\n", androidapp.VirusTotal.TimesSubmit)
+		fmt.Printf("LastAnalysis:\t")
+		cyan.Printf("%s\n", androidapp.VirusTotal.LastAnalysis)
+
+		fmt.Printf("Reputation:\t")
+		reput := androidapp.VirusTotal.Reput
+		if reput < 0 {
+			color.Red("%d (malicious)\n", reput)
+		} else {
+			cyan.Printf("%d (not malicious)\n", reput)
+		}
+
+		fmt.Printf("Last analysis results\n")
+		printStruct(androidapp.VirusTotal.AnalysStats, "\t")
+		fmt.Printf("Votes\n")
+		printStruct(androidapp.VirusTotal.Votes, "\t")
+		fmt.Printf("Icon\n")
+		printStruct(androidapp.VirusTotal.Icon, "\t")
+		fmt.Printf("Androguard\n")
+		printStruct(androidapp.VirusTotal.Androguard, "\t")
+
+	} else {
+		italic.Println("app not found in VirusTotal")
+	}
+}
+
 // printBanner() - like the cool kids
 func printBanner() {
 	var Banner string = `
@@ -142,96 +174,8 @@ by @andpalmier
 	cyan.Println(Banner)
 }
 
-// printVTLastAnalysisResults() - print analysis results from VirusTotal
-func (androidapp *AndroidApp) printVTLastAnalysisResults() {
-	fmt.Printf("Last analysis results:\n")
-	fmt.Printf("\tHarmless:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.Harmless)
-	fmt.Printf("\tTypeUnsupport:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.TypeUnsupported)
-	susp := androidapp.VirusTotal.AnalysStats.Suspicious
-	if susp > 0 {
-		color.Red("\tSuspicious:\t%d\n", androidapp.VirusTotal.AnalysStats.Suspicious)
-	} else {
-		fmt.Printf("\tSuspicious:\t")
-		cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.Suspicious)
-	}
-	fmt.Printf("\tConfirmTimeout:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.ConfirmedTimeout)
-	fmt.Printf("\tTimeout:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.Timeout)
-	fmt.Printf("\tFailure:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.Failure)
-	mal := androidapp.VirusTotal.AnalysStats.Malicious
-	if mal > 0 {
-		color.Red("\tMalicious:\t%d\n", androidapp.VirusTotal.AnalysStats.Malicious)
-	} else {
-		fmt.Printf("\tMalicious:\t")
-		cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.Malicious)
-	}
-	fmt.Printf("\tUndetected:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.AnalysStats.Undetected)
-}
-
-// printVTIcon() - print icon hashes from VirusTotal
-func (androidapp *AndroidApp) printVTIcon() {
-	fmt.Printf("Icon:")
-	if androidapp.VirusTotal.Icon.Md5 == "" {
-		italic.Printf("\t\tno icon found\n")
-	} else {
-		fmt.Printf("\n\tMd5:\t\t")
-		cyan.Printf("%s\n", androidapp.VirusTotal.Icon.Md5)
-		fmt.Printf("\tDhash:\t\t")
-		cyan.Printf("%s\n", androidapp.VirusTotal.Icon.Dhash)
-	}
-}
-
-// printVTVotes() - print votes results from VirusTotal
-func (androidapp *AndroidApp) printVTVotes() {
-	fmt.Printf("Votes:\n")
-	fmt.Printf("\tHarmless:\t")
-	cyan.Printf("%d\n", androidapp.VirusTotal.Votes.Harmless)
-	mal := androidapp.VirusTotal.Votes.Malicious
-	if mal > 0 {
-		color.Red("\tMalicious:\t%d\n", androidapp.VirusTotal.Votes.Malicious)
-	} else {
-		fmt.Printf("\tMalicious:\t")
-		cyan.Printf("%d\n", androidapp.VirusTotal.Votes.Malicious)
-	}
-}
-
-// printVTInfo() - print VirusTotal info
-func (androidapp *AndroidApp) printVTInfo() {
-	yellow.Println("\n* VirusTotal")
-	if androidapp.VirusTotal.Url != "" {
-		fmt.Printf("URL:\t\t")
-		cyan.Printf("%s\n", androidapp.VirusTotal.Url)
-		fmt.Printf("Names:\t\t")
-		cyan.Printf("%s\n", strings.Join(androidapp.VirusTotal.Names, ", "))
-		fmt.Printf("SubmissionDate:\t")
-		cyan.Printf("%s\n", androidapp.VirusTotal.FirstSubmit)
-		fmt.Printf("# Submissions:\t")
-		cyan.Printf("%d\n", androidapp.VirusTotal.TimesSubmit)
-		fmt.Printf("LastAnalysis:\t")
-		cyan.Printf("%s\n", androidapp.VirusTotal.LastAnalysis)
-		androidapp.printVTLastAnalysisResults()
-		fmt.Printf("Reputation:\t")
-		reput := androidapp.VirusTotal.Reput
-		if reput < 0 {
-			color.Red("%d (malicious)\n", reput)
-		} else {
-			cyan.Printf("%d (not malicious)\n", reput)
-		}
-		androidapp.printVTVotes()
-		androidapp.printVTIcon()
-	} else {
-		italic.Println("app not found in VirusTotal")
-	}
-}
-
 // printAndroidInfo() - print all the information
 func (androidapp *AndroidApp) printAll() {
-	printBanner()
 	name := androidapp.Name
 	yellow.Printf("\nApp name:\t")
 	if name != "" {
@@ -245,8 +189,9 @@ func (androidapp *AndroidApp) printAll() {
 	androidapp.printMetadata()
 	androidapp.printCertInfo()
 	androidapp.printPlayStoreInfo()
-	androidapp.printKoodousInfo()
-
+	if kapi != "" {
+		androidapp.printKoodousInfo()
+	}
 	if vtapi != "" {
 		androidapp.printVTInfo()
 	}

@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"time"
+
 	"github.com/avast/apkverifier"
 )
 
@@ -11,8 +13,8 @@ func (androidapp *AndroidApp) setCertInfo(cert apkverifier.CertInfo) {
 	androidapp.Certificate.Issuer = cert.Issuer
 	androidapp.Certificate.Subject = cert.Subject
 	androidapp.Certificate.Sha1 = cert.Sha1
-	androidapp.Certificate.ValidFrom = cert.ValidFrom.Format("Jan 2, 2006")
-	androidapp.Certificate.ValidTo = cert.ValidTo.Format("Jan 2, 2006")
+	androidapp.Certificate.ValidFrom = cert.ValidFrom.Format(time.RFC822)
+	androidapp.Certificate.ValidTo = cert.ValidTo.Format(time.RFC822)
 }
 
 // getCertInfo(path) - retrieve certificate information from apk

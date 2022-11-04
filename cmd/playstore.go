@@ -1,21 +1,25 @@
 package main
 
 import (
-	"github.com/n0madic/google-play-scraper/pkg/app"
 	"html"
+
+	"github.com/n0madic/google-play-scraper/pkg/app"
 )
 
 // SetPlayStoreInfo(app) - store Play Store info in the androidapp struct
 func (androidapp *AndroidApp) setPlayStoreInfo(playstore app.App) {
-	androidapp.PlayStore.Url = playstore.URL
-	androidapp.PlayStore.Version = playstore.Version
-	androidapp.PlayStore.Summary = html.UnescapeString(playstore.Summary)
-	androidapp.PlayStore.Developer.Name = playstore.Developer
-	androidapp.PlayStore.Developer.Mail = playstore.DeveloperEmail
-	androidapp.PlayStore.Developer.Id = playstore.DeveloperID
-	androidapp.PlayStore.Release = playstore.Released
-	androidapp.PlayStore.Installs = playstore.Installs
-	androidapp.PlayStore.Score = playstore.Score
+	playstoreitem := PlayStoreInfo{}
+	playstoreitem.Url = playstore.URL
+	playstoreitem.Version = playstore.Version
+	playstoreitem.Summary = html.UnescapeString(playstore.Summary)
+	playstoreitem.Developer = playstore.Developer
+	playstoreitem.DeveloperId = playstore.DeveloperID
+	playstoreitem.DeveloperMail = playstore.DeveloperEmail
+	playstoreitem.DeveloperURL = playstore.DeveloperWebsite
+	playstoreitem.Release = playstore.Released
+	playstoreitem.Installs = playstore.Installs
+	playstoreitem.Score = playstore.Score
+	androidapp.PlayStore = &playstoreitem
 }
 
 // searchPlayStore() - search app in Play Store using the package name

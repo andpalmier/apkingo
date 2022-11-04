@@ -3,63 +3,72 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/shogo82148/androidbinary/apk"
 	"os"
 	"path/filepath"
+
+	"github.com/shogo82148/androidbinary/apk"
 )
 
 /*
+apkingo is a tool written in Go to get detailed information about an apk file.
+apkingo will explore the given file to get details on the apk, such as package
+name, target SDK, permissions, metadata, certificate serial and issuer.
+The tool will also retrieve information about the specified apk from the
+Play Store, and (if valid API keys are provided) from Koodous and VirusTotal.
 
-apkingo is a tool written in Go to get detailed information about an apk file. apkingo will
-explore the given file to get details on the apk, such as package name, target SDK, permissions,
-metadata, certificate serial and issuer. The tool will also retrieve information about the
-specified apk from the Play Store, detect if it is malicious using Koodous and get information
-about the apk from VirusTotal (if a valid api key is provided).
+## Installation
 
+You can can download apkingo from the Releases section or compile it from the
+source by downloading the repository, navigating into the "apkingo" directory
+and building the project with "make apkingo". This will create a "build" folder,
+containing the resulting executable.
 
-After downloading the repository, navigate into the directory and build the project with make
-apkingo. This will create a folder build, containing an executable called apkingo. You can then
-run the executable with the following flags:
+## Usage
 
--apk 	to specify the path to the apk file (required)
--json	to specify the path of the json file where the results will be exported (optional)
--vt		to specify VirusTotal api key (optional)
+You can run apkingo with the following flags:
+
+- -apk to specify the path to the apk file (**required**)
+- -json to specify the path of the json file where the results will be exported
+- -vt to specify VirusTotal API key (required for VirusTotal analysis)
+- -k to specify Koodous API key (required for Koodous analysis)
 
 */
 
 var err error
 var androidapp AndroidApp
-var apkpath string
-var jsonfile string
-var vtapi string
+var apkpath, jsonfile, vtapi, kapi string
 
 // init() - parse flags
 func init() {
 	flag.StringVar(&apkpath, "apk", "", "specify apk path")
-	flag.StringVar(&jsonfile, "json", "", "specify json file to export findings in json")
-	flag.StringVar(&vtapi, "vt", "", "specify VirusTotal api (required for VT analysis)")
+	flag.StringVar(&jsonfile, "json", "", "specify json file path to export findings")
+	flag.StringVar(&vtapi, "vt", "", "specify VirusTotal API key (required for VT analysis)")
+	flag.StringVar(&kapi, "k", "", "specify Koodous API key (required for Koodous analysis)")
 }
 
 // main()
 func main() {
+	printBanner()
 	flag.Parse()
 
 	// load the apk
 	pkg, err := apk.OpenFile(apkpath)
 	if err != nil {
-		fmt.Println("error opening the apk file, be sure to use '-apk' to specify the file path")
+		red.Println("[!] error opening the apk file, be sure to use '-apk' to specify the file path")
 		os.Exit(1)
 	}
 	defer pkg.Close()
+
 	androidapp.setApkGeneralInfo(*pkg)
 	androidapp.setPermissions(*pkg)
 	androidapp.setMetadata(*pkg)
 
 	// extract hash values
 	if err = androidapp.setHashValues(apkpath); err != nil {
-		fmt.Printf("error calculating hash values: %s\n", err.Error())
+		red.Printf("[!] error calculating hash values: %s\n", err.Error())
 		os.Exit(1)
 	}
+
 	// extract certificate info
 	certinfo, err := androidapp.getCertInfo(apkpath)
 	if err != nil {
@@ -67,24 +76,28 @@ func main() {
 	} else {
 		androidapp.setCertInfo(*certinfo)
 	}
+
 	// get Play Store info
 	if playstoreinfo, err := androidapp.searchPlayStore(); err != nil {
-		androidapp.PlayStore.Url = ""
+		androidapp.PlayStore = nil
 	} else {
 		androidapp.setPlayStoreInfo(playstoreinfo)
 	}
+
 	// get Koodous info
-	err = androidapp.getKoodousDetection()
-	if err != nil {
-		androidapp.Koodous.Url = ""
-		fmt.Printf("%s", err)
+	if kapi != "" {
+		err = androidapp.getKoodousDetection(kapi)
+		if err != nil {
+			red.Printf("[!] error with Koodous API: %s\n", err)
+			kapi = ""
+		}
 	}
 
 	// get VirusTotal info if api key is provided
 	if vtapi != "" {
 		err = androidapp.getVTDetection(vtapi)
 		if err != nil {
-			fmt.Println(err)
+			red.Printf("[!] error with VirusTotal API: %s\n", err)
 			vtapi = ""
 		}
 	}
@@ -97,6 +110,11 @@ func main() {
 		if filepath.Ext(jsonfile) != ".json" {
 			jsonfile = jsonfile + ".json"
 		}
-		androidapp.ExportJson(jsonfile)
+		err = androidapp.ExportJson(jsonfile)
+		if err != nil {
+			fmt.Printf("\nanalysis exported at %s\n", jsonfile)
+		} else {
+			red.Printf("[!] error exporting results at %s: %s", jsonfile, err)
+		}
 	}
 }
