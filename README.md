@@ -13,7 +13,9 @@ apkingo is a tool written in Go to get detailed information about an apk file. a
 
 ## Installation
 
-You can can download apkingo from the [Releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by downloading the repository, navigating into the `apkingo` directory and building the project with `make apkingo`. This will create a  `build` folder, containing the resulting executable.
+You can can download apkingo from the [releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by using:
+
+`go install github.com/andpalmier/apkingo/cmd/apkingo@latest`
 
 ## Usage
 
