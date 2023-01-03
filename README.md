@@ -15,7 +15,28 @@ apkingo is a tool written in Go to get detailed information about an apk file. a
 
 You can can download apkingo from the [releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by using:
 
-`go install github.com/andpalmier/apkingo/cmd/apkingo@latest`
+```
+go install github.com/andpalmier/apkingo/cmd/apkingo@latest
+```
+
+## Docker
+
+If you prefer to use Docker, you can use [the image on Docker Hub](https://hub.docker.com/r/andpalmier/apkingo) and just:
+
+```
+docker run -it andpalmier/apkingo -it --rm -v "$(pwd)":/mnt apkingo -apk file.apk
+```
+
+If you want to run apkingo always in Docker, you can:
+
+```
+# pull the image
+docker pull andpalmier/apkingo:latest
+# create alias for always run apkingo in docker
+alias apkingo='docker run -it --rm -u $(id -u):$(id -g) -v "$(pwd)":/mnt andpalmier/apkingo:latest'
+# test it
+apkingo -h
+```
 
 ## Usage
 

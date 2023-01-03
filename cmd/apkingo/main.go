@@ -111,8 +111,8 @@ func main() {
 			jsonfile = jsonfile + ".json"
 		}
 		err = androidapp.ExportJson(jsonfile)
-		if err != nil {
-			fmt.Printf("\nanalysis exported at %s\n", jsonfile)
+		if err == nil {
+			fmt.Printf("analysis exported at %s\n", jsonfile)
 		} else {
 			red.Printf("[!] error exporting results at %s: %s", jsonfile, err)
 		}
