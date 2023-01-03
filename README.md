@@ -24,7 +24,7 @@ go install github.com/andpalmier/apkingo/cmd/apkingo@latest
 If you prefer to use Docker, you can use [the image on Docker Hub](https://hub.docker.com/r/andpalmier/apkingo) and just:
 
 ```
-docker run -it andpalmier/apkingo -it --rm -v "$(pwd)":/mnt:rw apkingo -apk file.apk
+docker run -it andpalmier/apkingo -it --rm -v "$(pwd)":/mnt apkingo -apk file.apk
 ```
 
 If you want to run apkingo always in Docker, you can:
@@ -33,7 +33,7 @@ If you want to run apkingo always in Docker, you can:
 # pull the image
 docker pull andpalmier/apkingo:latest
 # create alias for always run apkingo in docker
-alias apkingo='docker run -it --rm -u $(id -u):$(id -g) -v "$(pwd)":/mnt:rw andpalmier/apkingo:latest'
+alias apkingo='docker run -it --rm -u $(id -u):$(id -g) -v "$(pwd)":/mnt andpalmier/apkingo:latest'
 # test it
 apkingo -h
 ```
