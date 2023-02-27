@@ -19,29 +19,30 @@ func getFileHash(h hash.Hash, filepath string) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
-// setHashValues(filepath) - calculate hashes of the file and store them as a string
-// in the androidapp struct
-func (androidapp *AndroidApp) setHashValues(path string) error {
+// hashInfo(filepath) - calculate hashes of the apk file
+func hashInfo(path string) (string, error) {
 	h256 := sha256.New()
 	digestsha256, err := getFileHash(h256, path)
 	if err != nil {
-		return err
+		return "", err
 	}
-	androidapp.Hashes.Sha256 = fmt.Sprintf("%x", digestsha256)
-
 	h1 := sha1.New()
 	digestsha1, err := getFileHash(h1, path)
 	if err != nil {
-		return err
+		return "", err
 	}
-	androidapp.Hashes.Sha1 = fmt.Sprintf("%x", digestsha1)
-
 	hmd5 := md5.New()
 	digestmd5, err := getFileHash(hmd5, path)
 	if err != nil {
-		return err
+		return "", err
 	}
-	androidapp.Hashes.Md5 = fmt.Sprintf("%x", digestmd5)
 
-	return nil
+	fmt.Printf("md5:\t\t")
+	cyan.Printf("%x\n", digestmd5)
+	fmt.Printf("sha1:\t\t")
+	cyan.Printf("%x\n", digestsha1)
+	fmt.Printf("sha256:\t\t")
+	cyan.Printf("%x\n", digestsha256)
+
+	return fmt.Sprintf("%x", digestsha256), nil
 }
