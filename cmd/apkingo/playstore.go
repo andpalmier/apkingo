@@ -1,39 +1,45 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"html"
 
 	"github.com/n0madic/google-play-scraper/pkg/app"
 )
 
-// SetPlayStoreInfo(app) - store Play Store info in the androidapp struct
-func (androidapp *AndroidApp) setPlayStoreInfo(playstore app.App) {
-	playstoreitem := PlayStoreInfo{}
-	playstoreitem.Url = playstore.URL
-	playstoreitem.Version = playstore.Version
-	playstoreitem.Summary = html.UnescapeString(playstore.Summary)
-	playstoreitem.Developer = playstore.Developer
-	playstoreitem.DeveloperId = playstore.DeveloperID
-	playstoreitem.DeveloperMail = playstore.DeveloperEmail
-	playstoreitem.DeveloperURL = playstore.DeveloperWebsite
-	playstoreitem.Release = playstore.Released
-	playstoreitem.Installs = playstore.Installs
-	playstoreitem.Score = playstore.Score
-	androidapp.PlayStore = &playstoreitem
-}
-
 // searchPlayStore() - search app in Play Store using the package name
-func (androidapp *AndroidApp) searchPlayStore() (app.App, error) {
-	packagename := androidapp.GeneralInfo.PackageName
+func searchPlayStore(packagename string) error {
 	if packagename == "" {
-		return app.App{}, err
+		return errors.New("no package name found in the app")
 	}
 	playstoreinfo := app.New(packagename, app.Options{
 		Country:  "us",
 		Language: "us",
 	})
 	if err = playstoreinfo.LoadDetails(); err != nil {
-		return app.App{}, err
+		italic.Println("package name not found in Play Store")
+	} else {
+		fmt.Printf("URL:\t\t")
+		printer(playstoreinfo.URL)
+		fmt.Printf("Version:\t")
+		printer(playstoreinfo.Version)
+		fmt.Printf("Summary:\t")
+		printer(html.UnescapeString((playstoreinfo.Summary)))
+		fmt.Printf("Release date:\t")
+		printer(playstoreinfo.Released)
+		fmt.Printf("# installs:\t")
+		printer(playstoreinfo.Installs)
+		fmt.Printf("Score:\t\t")
+		printer(playstoreinfo.ScoreText)
+		fmt.Printf("Developer:\t")
+		printer(playstoreinfo.Developer)
+		fmt.Printf("Developer ID:\t")
+		printer(playstoreinfo.DeveloperID)
+		fmt.Printf("Developer mail:\t")
+		printer(playstoreinfo.DeveloperEmail)
+		fmt.Printf("Developer URL:\t")
+		printer(playstoreinfo.DeveloperWebsite)
 	}
-	return *playstoreinfo, nil
+	return nil
 }
