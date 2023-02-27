@@ -9,7 +9,7 @@
   </p>
 </p>
 
-apkingo is a tool written in Go to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the specified apk from the Play Store, and (if valid API keys are provided) from [Koodous](https://koodous.com/) and [VirusTotal](https://virustotal.com).
+apkingo is a tool to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the specified apk from the Play Store, and (if valid API keys are provided) from [Koodous](https://koodous.com/) and [VirusTotal](https://virustotal.com). In case the file is not in VirusTotal, apkingo allows to upload it using the submitted API key.
 
 ## Installation
 
@@ -19,36 +19,16 @@ You can can download apkingo from the [releases section](https://github.com/andp
 go install github.com/andpalmier/apkingo/cmd/apkingo@latest
 ```
 
-## Docker
-
-If you prefer to use Docker, you can use [the image on Docker Hub](https://hub.docker.com/r/andpalmier/apkingo) and just:
-
-```
-docker run -it andpalmier/apkingo -it --rm -v "$(pwd)":/mnt:rw apkingo -apk file.apk
-```
-
-If you want to run apkingo always in Docker, you can:
-
-```
-# pull the image
-docker pull andpalmier/apkingo:latest
-# create alias for always run apkingo in docker
-alias apkingo='docker run -it --rm -u $(id -u):$(id -g) -v "$(pwd)":/mnt:rw andpalmier/apkingo:latest'
-# test it
-apkingo -h
-```
-
 ## Usage
 
-You can run apkingo with the following flags:
+If you have Koodous or VirusTotal API keys, you can use them in apkingo by exporting the environment variables:
 
-- `-apk` to specify the path to the apk file (**required**)
-- `-json` to specify the path of the json file where the results will be exported
-- `-vt` to specify VirusTotal API key (required for VirusTotal analysis)
-- `-k` to specify Koodous API key (required for Koodous analysis)
+```
+export VT_API_KEY=<your_api_key>
+export KOODOUS_API_KEY=<your_api_key>
+```
 
-Example:
-```apkingo -apk snapseed.apk -json snapseed_analysis.json```
+You can then run apkingo with: `apkingo file.apk`
 
 ## Screenshots
 
