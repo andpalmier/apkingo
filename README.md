@@ -5,7 +5,7 @@
   <p align="center">
     <a href="https://github.com/andpalmier/apkingo/blob/main/LICENSE"><img alt="Software License" src="https://img.shields.io/badge/license-GPL3-brightgreen.svg?style=flat-square"></a>
     <a href="https://goreportcard.com/report/github.com/andpalmier/apkingo"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/andpalmier/apkingo?style=flat-square"></a>
-    <a href="https://twitter.com/intent/follow?screen_name=andpalmier"><img src="https://img.shields.io/twitter/follow/andpalmier?style=social&logo=twitter" alt="follow on Twitter"></a>
+    <a href="https://x.com/intent/follow?screen_name=andpalmier"><img src="https://img.shields.io/twitter/follow/andpalmier?style=social&logo=twitter" alt="follow on Twitter"></a>
   </p>
 </p>
 
@@ -40,11 +40,6 @@ You can run apkingo with the following flags:
 apkingo analyzing snapseed:
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_snapseed.png?raw=true" />
-</p>
-
-apkingo analyzing F-Droid:
-<p align="center">
-  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_f-droid.png?raw=true" />
 </p>
 
 apkingo analyzing an Android malware (I had to cut the screenshot on the permissions section):
