@@ -5,44 +5,43 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
-	"hash"
+	"io"
 	"os"
 )
 
-// getFileHash(h, filepath) - hash the file in the given path with the selected hash
-func getFileHash(h hash.Hash, filepath string) ([]byte, error) {
-	file, err := os.ReadFile(filepath)
+// setHashes calculates hashes of the APK file
+func (androidapp *AndroidApp) setHashes(path string) error {
+	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	h.Write(file)
-	return h.Sum(nil), nil
-}
+	defer file.Close()
 
-// hashInfo(filepath) - calculate hashes of the apk file
-func hashInfo(path string) (string, error) {
 	h256 := sha256.New()
-	digestsha256, err := getFileHash(h256, path)
-	if err != nil {
-		return "", err
+	if _, err := io.Copy(h256, file); err != nil {
+		return err
 	}
+	androidapp.Hashes.Sha256 = fmt.Sprintf("%x", h256.Sum(nil))
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
 	h1 := sha1.New()
-	digestsha1, err := getFileHash(h1, path)
-	if err != nil {
-		return "", err
+	if _, err := io.Copy(h1, file); err != nil {
+		return err
 	}
+	androidapp.Hashes.Sha1 = fmt.Sprintf("%x", h1.Sum(nil))
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
 	hmd5 := md5.New()
-	digestmd5, err := getFileHash(hmd5, path)
-	if err != nil {
-		return "", err
+	if _, err := io.Copy(hmd5, file); err != nil {
+		return err
 	}
+	androidapp.Hashes.Md5 = fmt.Sprintf("%x", hmd5.Sum(nil))
 
-	fmt.Printf("md5:\t\t")
-	cyan.Printf("%x\n", digestmd5)
-	fmt.Printf("sha1:\t\t")
-	cyan.Printf("%x\n", digestsha1)
-	fmt.Printf("sha256:\t\t")
-	cyan.Printf("%x\n", digestsha256)
-
-	return fmt.Sprintf("%x", digestsha256), nil
+	return nil
 }

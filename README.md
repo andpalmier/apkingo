@@ -9,11 +9,11 @@
   </p>
 </p>
 
-apkingo is a tool to get detailed information about an apk file. apkingo will explore the given file to get details on the apk, such as package name, target SDK, permissions, metadata, certificate serial and issuer. The tool will also retrieve information about the specified apk from the Play Store, and (if valid API keys are provided) from [Koodous](https://koodous.com/) and [VirusTotal](https://virustotal.com). In case the file is not in VirusTotal, apkingo allows to upload it using the submitted API key.
+apkingo is a utility designed to extract information from an APK file. By analyzing the provided file, apkingo extracts details like package name,  target SDK, permissions, metadata, certificate serial, and issuer. Additionally, the tool fetches information about the specified apk from the Play Store and, if valid API keys are provided, from Koodous and VirusTotal. If the file is not available on VirusTotal, apkingo offers the option to upload it.
 
 ## Installation
 
-You can can download apkingo from the [releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by using:
+You can download apkingo from the [releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by running:
 
 ```
 go install github.com/andpalmier/apkingo/cmd/apkingo@latest
@@ -21,14 +21,19 @@ go install github.com/andpalmier/apkingo/cmd/apkingo@latest
 
 ## Usage
 
-If you have Koodous or VirusTotal API keys, you can use them in apkingo by exporting the environment variables:
-
+You can run apkingo with the following flags:
 ```
-export VT_API_KEY=<your_api_key>
-export KOODOUS_API_KEY=<your_api_key>
+  -apk string (REQUIRED)
+        Path to APK file
+  -country string
+        Country code of the Play Store (default "us")
+  -json string
+        Path to export analysis in JSON format
+  -kapi string
+        Koodous API key (you can export it using the env variable KOODOUS_API_KEY)
+  -vtapi string
+        VirusTotal API key (you can export it using the env variable VT_API_KEY)
 ```
-
-You can then run apkingo with: `apkingo file.apk`
 
 ## Screenshots
 
@@ -52,14 +57,14 @@ apkingo analyzing an Android malware (I had to cut the screenshot on the permiss
 
 Here is the full list of information which apkingo can retrieve:
 
-- General information: app name, package name, app version, MainActivity, minimum and target SDK
+- General information: app name, package name, app version, main activity, minimum and target SDK
 - Hashes: md5, sha1 and sha256
 - Permissions
 - Metadata
-- Certificate information: serial, sha1, subject, issuer, validity date and expiration date
-- Play Store information: Play Store url, version, summary, release date, number of installations, score, developer name, developer ID, developer mail and developer website
-- Koodous info (API key required): Koodous url, Koodous ID, app name, package name, company, version, Koodous link to the app icon, size, Koodous tags, trusted (boolean), installed on devices (boolean), Koodous rating, detected (boolean), corrupted (boolean), statically analyzed (boolean), dynamically analyzed (boolean) and date when the app was submitted to Koodous for the first time
-- VirusTotal info (API key required): VirusTotal url, apk names, first submission date, number of submissions, last analysis date and results, reputation, community votes (harmless and malicious), md5 and dhash of icon, providers, receivers, services, interesting string and permissions that are considered dangerous.
+- Certificate information: serial, thumbprint, validity, date, expiration date, issuer and subject
+- Play Store information: Play Store url, version, release date, last update date, genre, summary, number of installations, score, developer name, developer ID, developer mail and developer website
+- Koodous info (API key required): Koodous url, Koodous ID, Koodous link to the app icon, size, Koodous tags, trusted (boolean), Koodous rating, corrupted (boolean) and submission date
+- VirusTotal info (API key required): VirusTotal url, apk names, submission date, number of submissions, last analysis date and results, community votes (harmless and malicious), md5 and dhash of icon, providers, receivers, services, interesting strings and permissions that are considered dangerous
 
 ## 3rd party libraries used
 

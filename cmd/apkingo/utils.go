@@ -1,36 +1,12 @@
 package main
 
-import "github.com/fatih/color"
+import (
+	"os"
+	"path/filepath"
+)
 
-// colors to improve readability
-var italic = color.New(color.FgWhite, color.Italic)
-var yellow = color.New(color.FgYellow)
-var cyan = color.New(color.FgCyan)
-var red = color.New(color.FgRed)
-
-// printBanner() - like the cool kids
-func printBanner() {
-	var Banner string = `
-	┌─┐┌─┐┬┌─┬┌┐┌┌─┐┌─┐
-	├─┤├─┘├┴┐│││││ ┬│ │
-	┴ ┴┴  ┴ ┴┴┘└┘└─┘└─┘
-by @andpalmier
-`
-	cyan.Println(Banner)
-}
-
-// printer(string) - help print some values
-func printer(s string) {
-	if s != "" {
-		cyan.Printf("%s\n", s)
-	} else {
-		italic.Println("not found")
-	}
-}
-
-// mapping SDK to Android version
-var androidname = map[int]string{
-	0:  "Not found",
+// Android SDK version names
+var androidName = map[int]string{
 	1:  "Android 1",
 	2:  "Android 1.1",
 	3:  "Android 1.5",
@@ -64,4 +40,28 @@ var androidname = map[int]string{
 	31: "Android 12",
 	32: "Android 12",
 	33: "Android 13",
+}
+
+// getFileName retrieves a file name from a file path
+func getFileName(path string) string {
+	return filepath.Base(path)
+}
+
+// printer helps print some values
+func printer(s string) {
+	if s != "" {
+		cyan.Printf("%s\n", s)
+	} else {
+		italic.Println()
+	}
+}
+
+// getAPIKey retrieves an API key from the environment variable
+func getAPIKey(env string, message string) string {
+	apiKey := os.Getenv(env)
+
+	if apiKey == "" {
+		yellow.Println(message)
+	}
+	return apiKey
 }

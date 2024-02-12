@@ -1,85 +1,82 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"os"
 
 	"github.com/shogo82148/androidbinary/apk"
 )
 
-// permissionsInfo(apk) - get the permission from apk
-func permissionsInfo(apk apk.Apk) {
-	if len(apk.Manifest().UsesPermissions) == 0 {
-		italic.Println("no permissions found")
-	} else {
-		for _, n := range apk.Manifest().UsesPermissions {
-			permission, _ := n.Name.String()
-			if permission != "" {
-				fmt.Println(permission)
-			}
-		}
-	}
+// AndroidApp represents information extracted from an APK file
+type AndroidApp struct {
+	Name         string          `json:"name"`
+	PackageName  string          `json:"package-name"`
+	Version      string          `json:"version"`
+	MainActivity string          `json:"main-activity"`
+	MinimumSDK   int32           `json:"minimum-sdk"`
+	TargetSDK    int32           `json:"target-sdk"`
+	Hashes       Hashes          `json:"hashes"`
+	Permissions  []string        `json:"permissions"`
+	Metadata     []Metadata      `json:"metadata"`
+	Certificate  CertificateInfo `json:"certificate"`
+	PlayStore    *PlayStoreInfo  `json:"playstore,omitempty"`
+	Koodous      *KoodousInfo    `json:"koodous,omitempty"`
+	VirusTotal   *VirusTotalInfo `json:"virustotal,omitempty"`
 }
 
-// metadataInfo(apk) - get the metadata from apk
-func metadataInfo(apk apk.Apk) {
-	if len(apk.Manifest().App.MetaData) == 0 {
-		italic.Println("no metadata found")
-	} else {
-		for _, n := range apk.Manifest().App.MetaData {
-			metaname, _ := n.Name.String()
-			metavalue, _ := n.Value.String()
-			fmt.Printf("%s: ", metaname)
-			if metavalue != "" {
-				cyan.Printf("%s", metavalue)
-			}
-			fmt.Printf("\n")
-		}
-	}
+// Hashes represents hash values
+type Hashes struct {
+	Md5    string `json:"md5"`
+	Sha1   string `json:"sha1"`
+	Sha256 string `json:"sha256"`
 }
 
-// getGeneralInfo(apk) - get general info from apk
-func generalInfo(apk apk.Apk) {
+// Metadata represents metadata
+type Metadata struct {
+	Name  string `json:"name"`
+	Value string `json:"value,omitempty"`
+}
 
-	yellow.Printf("\nApp name:\t")
-	name, err := apk.Label(nil)
-	if err == nil {
-		cyan.Printf("%s\n", name)
-	} else {
-		italic.Printf("app name not found\n")
-	}
-
-	yellow.Println("\n* General Info")
-
-	fmt.Printf("PackageName:\t")
-	printer(apk.PackageName())
-
-	fmt.Printf("App version:\t")
-	version, err := apk.Manifest().VersionName.String()
+// ExportJSON exports AndroidApp struct to a JSON file
+func (app *AndroidApp) ExportJSON(jsonpath string) error {
+	jsonfile, err := json.MarshalIndent(app, "", "\t")
 	if err != nil {
-		version = ""
+		return err
 	}
-	printer(version)
+	err = os.WriteFile(jsonpath, jsonfile, 0644)
+	return err
+}
 
-	fmt.Printf("Main activity:\t")
-	mainactivity, err := apk.MainActivity()
-	if err != nil {
-		mainactivity = ""
+// setGeneralInfo sets general information about the APK
+func (app *AndroidApp) setGeneralInfo(apk *apk.Apk) {
+	name, _ := apk.Label(nil)
+	app.Name = name
+	app.PackageName = apk.PackageName()
+	version, _ := apk.Manifest().VersionName.String()
+	app.Version = version
+	main, _ := apk.MainActivity()
+	app.MainActivity = main
+	sdkMin, _ := apk.Manifest().SDK.Min.Int32()
+	app.MinimumSDK = sdkMin
+	sdkTarget, _ := apk.Manifest().SDK.Target.Int32()
+	app.TargetSDK = sdkTarget
+	for _, n := range apk.Manifest().UsesPermissions {
+		permission, _ := n.Name.String()
+		if permission != "" {
+			app.Permissions = append(app.Permissions, permission)
+		}
 	}
-	printer(mainactivity)
-
-	fmt.Printf("Minimum SDK:\t")
-	sdkmin, err := apk.Manifest().SDK.Min.Int32()
-	if err != nil {
-		italic.Println("not found")
-	} else {
-		cyan.Printf("%d (%s)\n", sdkmin, androidname[int(sdkmin)])
-	}
-
-	fmt.Printf("Target SDK:\t")
-	sdktarget, err := apk.Manifest().SDK.Target.Int32()
-	if err != nil {
-		italic.Println("not found")
-	} else {
-		cyan.Printf("%d (%s)\n", sdktarget, androidname[int(sdktarget)])
+	var m Metadata
+	for _, n := range apk.Manifest().App.MetaData {
+		metadataName, _ := n.Name.String()
+		metadataValue, _ := n.Value.String()
+		if metadataName != "" {
+			m.Name = metadataName
+			m.Value = ""
+			if metadataValue != "" {
+				m.Value = metadataValue
+			}
+			app.Metadata = append(app.Metadata, m)
+		}
 	}
 }
