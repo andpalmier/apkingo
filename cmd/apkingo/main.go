@@ -17,11 +17,14 @@ var (
 	country  string
 	vtAPIKey string
 	kAPIKey  string
-	kAPImsg  = "[i] Koodous API key not found, you can provide it with the -kapi flag or " +
+	vtUpload = false
+)
+
+const (
+	kAPImsg = "[i] Koodous API key not found, you can provide it with the -kapi flag or " +
 		"export it using the env variable KOODOUS_API_KEY"
 	vtAPImsg = "[i] VirusTotal API key not found, you can provide it with the -vtapi flag or" +
 		"export it using the env variable VT_API_KEY)"
-	vtUpload = false
 )
 
 func init() {
@@ -48,6 +51,7 @@ func main() {
 		kAPIKey = getAPIKey("KOODOUS_API_KEY", kAPImsg)
 	}
 	app := AndroidApp{}
+
 	if err := app.processAPK(apkPath, country, vtAPIKey, kAPIKey); err != nil {
 		log.Fatalf("Error processing APK: %v", err)
 	}
@@ -67,28 +71,35 @@ func main() {
 func (app *AndroidApp) processAPK(apkPath, country, vtAPIKey, koodousAPI string) error {
 	pkg, err := loadAPK(apkPath)
 	if err != nil {
-		return fmt.Errorf("error loading APK: %w", err)
+		return fmt.Errorf("error loading APK: %s", err)
 	}
 	defer pkg.Close()
 
-	app.setGeneralInfo(pkg)
+	if err = app.setGeneralInfo(pkg); err != nil {
+		log.Printf("error getting general information: %s\n", err)
+	}
 
 	if err = app.setHashes(apkPath); err != nil {
-		return fmt.Errorf("error setting hashes: %w", err)
+		return fmt.Errorf("error setting hashes: %s\n", err)
 	}
 
 	if err = app.setCertInfo(apkPath); err != nil {
-		log.Printf("error with certificate: %w", err)
+		log.Printf("error getting certificate information: %s\n", err)
 	}
 
-	app.setPlayStoreInfo(country)
+	if err = app.setPlayStoreInfo(country); err != nil {
+		log.Printf("error getting Play Store information: %s\n", err)
+	}
 
 	if koodousAPI != "" {
-		app.setKoodousInfo(koodousAPI)
+		if err = app.setKoodousInfo(koodousAPI); err != nil {
+			log.Printf("error getting Koodous information: %s\n", err)
+		}
 	}
 
 	if vtAPIKey != "" {
-		if err := app.setVTInfo(vtAPIKey); err != nil {
+		if err = app.setVTInfo(vtAPIKey); err != nil {
+			log.Printf("error getting VirusTotal information: %s\n", err)
 			vtUpload = true
 		}
 	}

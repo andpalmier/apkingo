@@ -55,16 +55,17 @@ func printGeneralInfo(androidapp *AndroidApp) {
 	printString("version", androidapp.Version)
 	printString("main activity", androidapp.MainActivity)
 	fmt.Printf("minimum SDK: ")
-	if androidapp.MinimumSDK == 0 {
-		italic.Println("not found")
-	} else {
+	if androidapp.MinimumSDK != 0 {
 		cyan.Printf("%d (%s)\n", androidapp.MinimumSDK, androidName[int(androidapp.MinimumSDK)])
-	}
-	fmt.Printf("target SDK: ")
-	if androidapp.TargetSDK == 0 {
-		italic.Println("not found")
 	} else {
+		italic.Println("not found")
+	}
+
+	fmt.Printf("target SDK: ")
+	if androidapp.TargetSDK != 0 {
 		cyan.Printf("%d (%s)\n", androidapp.TargetSDK, androidName[int(androidapp.TargetSDK)])
+	} else {
+		italic.Println("not found")
 	}
 }
 
@@ -124,12 +125,14 @@ func printKoodousInfo(kinfo *KoodousInfo) {
 		} else {
 			cyan.Println("false")
 		}
+
 		fmt.Printf("rating: ")
 		if kinfo.Rating >= 0 {
 			cyan.Printf("%d\n", kinfo.Rating)
 		} else {
 			red.Printf("%d - negative rating\n", kinfo.Rating)
 		}
+
 		printString("corrupted", fmt.Sprintf("%t", kinfo.Corrupted))
 	} else {
 		italic.Println("impossible to retrieve Koodous info")
@@ -226,11 +229,11 @@ func printVTAndroguard(androguard *AndroguardInfo) {
 		printString("\treceivers", fmt.Sprintf("%v", androguard.Receivers))
 		printString("\tservices", fmt.Sprintf("%v", androguard.Services))
 		printString("\tstrings", fmt.Sprintf("%v", androguard.Strings))
-		if len(androguard.DangerPerm) == 0 {
-			italic.Println("dangerous permissions not found")
-		} else {
+		if len(androguard.DangerPerm) > 0 {
 			fmt.Printf("\tdangerous permissions: ")
 			red.Printf("%v\n", androguard.DangerPerm)
+		} else {
+			italic.Println("dangerous permissions not found")
 		}
 	} else {
 		italic.Println("not found")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/shogo82148/androidbinary/apk"
@@ -43,22 +44,40 @@ func (app *AndroidApp) ExportJSON(jsonpath string) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(jsonpath, jsonfile, 0644)
-	return err
+	return os.WriteFile(jsonpath, jsonfile, 0644)
 }
 
 // setGeneralInfo sets general information about the APK
-func (app *AndroidApp) setGeneralInfo(apk *apk.Apk) {
-	name, _ := apk.Label(nil)
+func (app *AndroidApp) setGeneralInfo(apk *apk.Apk) error {
+	name, err := apk.Label(nil)
+	if err != nil {
+		return err
+	}
 	app.Name = name
 	app.PackageName = apk.PackageName()
-	version, _ := apk.Manifest().VersionName.String()
+	version, err := apk.Manifest().VersionName.String()
+	if err != nil {
+		log.Printf("error getting general information: %s\n", err)
+	}
+
 	app.Version = version
-	main, _ := apk.MainActivity()
+	main, err := apk.MainActivity()
+	if err != nil {
+		log.Printf("error getting general information: %s\n", err)
+	}
+
 	app.MainActivity = main
-	sdkMin, _ := apk.Manifest().SDK.Min.Int32()
+	sdkMin, err := apk.Manifest().SDK.Min.Int32()
+	if err != nil {
+		log.Printf("error getting general information: %s\n", err)
+	}
+
 	app.MinimumSDK = sdkMin
-	sdkTarget, _ := apk.Manifest().SDK.Target.Int32()
+	sdkTarget, err := apk.Manifest().SDK.Target.Int32()
+	if err != nil {
+		log.Printf("error getting general information: %s\n", err)
+	}
+
 	app.TargetSDK = sdkTarget
 	for _, n := range apk.Manifest().UsesPermissions {
 		permission, _ := n.Name.String()
@@ -79,4 +98,5 @@ func (app *AndroidApp) setGeneralInfo(apk *apk.Apk) {
 			app.Metadata = append(app.Metadata, m)
 		}
 	}
+	return nil
 }

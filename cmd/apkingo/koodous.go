@@ -36,13 +36,21 @@ func (androidapp *AndroidApp) setKoodousInfo(kapi string) error {
 	if strings.Contains(body, "Not found") {
 		return nil
 	}
+
 	if strings.Contains(body, "detail") {
-		return errors.New(strings.Split(body, "\"")[3])
+		split := strings.Split(body, "\"")
+		if len(split) > 4 {
+			var KoodousErr = errors.New(strings.Split(body, "\"")[3])
+			return KoodousErr
+		} else {
+			var KoodousErr = errors.New("error interpreting Koodous response")
+			return KoodousErr
+		}
 	}
 
 	var koodousResult KoodousInfo
 	if err := json.Unmarshal([]byte(body), &koodousResult); err != nil {
-		return fmt.Errorf("error parsing Koodous result: %v", err)
+		return fmt.Errorf("error parsing Koodous result: %s", err)
 	}
 
 	androidapp.Koodous = &KoodousInfo{

@@ -59,7 +59,6 @@ func printer(s string) {
 // getAPIKey retrieves an API key from the environment variable
 func getAPIKey(env string, message string) string {
 	apiKey := os.Getenv(env)
-
 	if apiKey == "" {
 		yellow.Println(message)
 	}
