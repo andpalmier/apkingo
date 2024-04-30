@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY ./go.mod /app/go.mod
 COPY ./go.mod /app/go.sum
-RUN go mod download
+RUN go mod tidy
 
 COPY ./ /app/
 RUN go build -o apkingo ./cmd/apkingo/
