@@ -36,12 +36,7 @@ You can run apkingo with the following flags:
         VirusTotal API key (you can export it using the env variable VT_API_KEY)
 ```
 
-## Screenshots
-
-apkingo analyzing snapseed:
-<p align="center">
-  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_snapseed.png?raw=true" />
-</p>
+## Screenshot
 
 apkingo analyzing an Android malware:
 <p align="center">
