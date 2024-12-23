@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/shogo82148/androidbinary/apk"
@@ -49,54 +48,45 @@ func (app *AndroidApp) ExportJSON(jsonpath string) error {
 
 // setGeneralInfo sets general information about the APK
 func (app *AndroidApp) setGeneralInfo(apk *apk.Apk) error {
-	name, err := apk.Label(nil)
+
+	var err error
+
+	app.Name, err = apk.Label(nil)
 	if err != nil {
 		return err
 	}
-	app.Name = name
+
 	app.PackageName = apk.PackageName()
-	version, err := apk.Manifest().VersionName.String()
-	if err != nil {
-		log.Printf("error getting general information: %s\n", err)
-	}
 
-	app.Version = version
-	main, err := apk.MainActivity()
-	if err != nil {
-		log.Printf("error getting general information: %s\n", err)
-	}
+	app.Version, err = apk.Manifest().VersionName.String()
+	logError("error getting version information", err)
 
-	app.MainActivity = main
-	sdkMin, err := apk.Manifest().SDK.Min.Int32()
-	if err != nil {
-		log.Printf("error getting general information: %s\n", err)
-	}
+	app.MainActivity, err = apk.MainActivity()
+	logError("error getting main activity information", err)
 
-	app.MinimumSDK = sdkMin
-	sdkTarget, err := apk.Manifest().SDK.Target.Int32()
-	if err != nil {
-		log.Printf("error getting general information: %s\n", err)
-	}
+	app.MinimumSDK, err = apk.Manifest().SDK.Min.Int32()
+	logError("error getting minimum SDK information", err)
 
-	app.TargetSDK = sdkTarget
+	app.TargetSDK, err = apk.Manifest().SDK.Target.Int32()
+	logError("error getting target SDK information", err)
+
 	for _, n := range apk.Manifest().UsesPermissions {
 		permission, _ := n.Name.String()
 		if permission != "" {
 			app.Permissions = append(app.Permissions, permission)
 		}
 	}
-	var m Metadata
+
 	for _, n := range apk.Manifest().App.MetaData {
 		metadataName, _ := n.Name.String()
 		metadataValue, _ := n.Value.String()
 		if metadataName != "" {
-			m.Name = metadataName
-			m.Value = ""
-			if metadataValue != "" {
-				m.Value = metadataValue
-			}
-			app.Metadata = append(app.Metadata, m)
+			app.Metadata = append(app.Metadata, Metadata{
+				Name:  metadataName,
+				Value: metadataValue,
+			})
 		}
 	}
+
 	return nil
 }

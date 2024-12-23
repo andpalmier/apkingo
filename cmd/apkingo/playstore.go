@@ -33,8 +33,7 @@ func (androidapp *AndroidApp) setPlayStoreInfo(country string) error {
 	packagename := androidapp.PackageName
 	if packagename == "" {
 		androidapp.PlayStore = nil
-		var PackageNameNotFound = errors.New("no package name found in the app")
-		return PackageNameNotFound
+		return errors.New("no package name found in the app")
 	}
 
 	playStoreInfo := app.New(packagename, app.Options{
@@ -43,8 +42,8 @@ func (androidapp *AndroidApp) setPlayStoreInfo(country string) error {
 	})
 
 	if err := playStoreInfo.LoadDetails(); err != nil {
-		var PlayStoreInfoNotFound = errors.New("Play Store information not found")
-		return PlayStoreInfoNotFound
+		logError("Play Store information not found", err)
+		return errors.New("Play Store information not found")
 	}
 
 	androidapp.PlayStore = &PlayStoreInfo{

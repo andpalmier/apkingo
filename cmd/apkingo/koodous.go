@@ -29,6 +29,7 @@ func (androidapp *AndroidApp) setKoodousInfo(kapi string) error {
 	url := fmt.Sprintf("https://developer.koodous.com/apks/%s", hash)
 	resp, body, errs := gorequest.New().Get(url).Set("Authorization", "Token "+kapi).End()
 	if len(errs) > 0 {
+		logError("error reaching Koodous", errs[0])
 		return fmt.Errorf("error reaching Koodous: %v", errs[0])
 	}
 	defer resp.Body.Close()
@@ -40,16 +41,19 @@ func (androidapp *AndroidApp) setKoodousInfo(kapi string) error {
 	if strings.Contains(body, "detail") {
 		split := strings.Split(body, "\"")
 		if len(split) > 4 {
-			var KoodousErr = errors.New(strings.Split(body, "\"")[3])
-			return KoodousErr
+			err := errors.New(strings.Split(body, "\"")[3])
+			logError("error interpreting Koodous response", err)
+			return err
 		} else {
-			var KoodousErr = errors.New("error interpreting Koodous response")
-			return KoodousErr
+			err := errors.New("error interpreting Koodous response")
+			logError("error interpreting Koodous response", err)
+			return err
 		}
 	}
 
 	var koodousResult KoodousInfo
 	if err := json.Unmarshal([]byte(body), &koodousResult); err != nil {
+		logError("error parsing Koodous result", err)
 		return fmt.Errorf("error parsing Koodous result: %s", err)
 	}
 
@@ -70,6 +74,7 @@ func (androidapp *AndroidApp) setKoodousInfo(kapi string) error {
 func parseSubmissionDate(date string) string {
 	t, err := time.Parse(time.RFC3339Nano, date)
 	if err != nil {
+		logError("error parsing submission date", err)
 		return ""
 	}
 	return t.Format(time.DateTime)

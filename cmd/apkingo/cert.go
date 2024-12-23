@@ -57,8 +57,7 @@ func (androidapp *AndroidApp) setCertInfo(filepath string) error {
 
 	cert, certx := apkverifier.PickBestApkCert(res)
 	if cert == nil {
-		var CertNotFound = errors.New("no certificate found")
-		return CertNotFound
+		return errors.New("no certificate found")
 	}
 
 	androidapp.Certificate.Serial = hex.EncodeToString(cert.SerialNumber.Bytes())

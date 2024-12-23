@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -40,6 +42,9 @@ var androidName = map[int]string{
 	31: "Android 12",
 	32: "Android 12",
 	33: "Android 13",
+	34: "Android 14",
+	35: "Android 15",
+	36: "Android 16",
 }
 
 // getFileName retrieves a file name from a file path
@@ -57,10 +62,19 @@ func printer(s string) {
 }
 
 // getAPIKey retrieves an API key from the environment variable
-func getAPIKey(env string, message string) string {
-	apiKey := os.Getenv(env)
-	if apiKey == "" {
-		yellow.Println(message)
+func getAPIKey(flagValue, envVar, msg string) string {
+	if flagValue == "" {
+		flagValue = os.Getenv(envVar)
+		if flagValue == "" {
+			fmt.Println(msg)
+		}
 	}
-	return apiKey
+	return flagValue
+}
+
+// logError logs an error message if the error is not nil
+func logError(msg string, err error) {
+	if err != nil {
+		log.Printf("%s: %s\n", msg, err)
+	}
 }

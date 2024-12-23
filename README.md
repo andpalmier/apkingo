@@ -16,7 +16,7 @@ apkingo is a utility designed to extract information from an APK file. By analyz
 
 You can download apkingo from the [releases section](https://github.com/andpalmier/apkingo/releases) or compile it from the source by running:
 
-```
+```sh
 go install github.com/andpalmier/apkingo/cmd/apkingo@latest
 ```
 
@@ -43,10 +43,9 @@ apkingo analyzing snapseed:
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_snapseed.png?raw=true" />
 </p>
 
-apkingo analyzing an Android malware (I had to cut the screenshot on the permissions section):
+apkingo analyzing an Android malware:
 <p align="center">
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_malware.png?raw=true" />
-  <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_malware2.png?raw=true" />
 </p>
 
 ## Features

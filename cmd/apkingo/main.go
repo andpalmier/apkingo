@@ -33,23 +33,17 @@ func init() {
 	flag.StringVar(&country, "country", "us", "Country code of the Play Store")
 	flag.StringVar(&vtAPIKey, "vtapi", "", "VirusTotal API key")
 	flag.StringVar(&kAPIKey, "kapi", "", "Koodous API key")
-
 }
 
 func main() {
 	flag.Parse()
 	if apkPath == "" {
-		fmt.Println("No APK specified, please provide the path using the -apk flag.")
-		flag.PrintDefaults()
-		os.Exit(1)
+		log.Fatalf("No APK specified, please provide the path using the -apk flag.\n")
 	}
 
-	if vtAPIKey == "" {
-		vtAPIKey = getAPIKey("VT_API_KEY", vtAPImsg)
-	}
-	if kAPIKey == "" {
-		kAPIKey = getAPIKey("KOODOUS_API_KEY", kAPImsg)
-	}
+	vtAPIKey = getAPIKey(vtAPIKey, "VT_API_KEY", vtAPImsg)
+	kAPIKey = getAPIKey(kAPIKey, "KOODOUS_API_KEY", kAPImsg)
+
 	app := AndroidApp{}
 
 	if err := app.processAPK(apkPath, country, vtAPIKey, kAPIKey); err != nil {
@@ -108,11 +102,7 @@ func (app *AndroidApp) processAPK(apkPath, country, vtAPIKey, koodousAPI string)
 }
 
 func loadAPK(filePath string) (*apk.Apk, error) {
-	pkg, err := apk.OpenFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-	return pkg, nil
+	return apk.OpenFile(filePath)
 }
 
 func askToUploadToVT(apkPath, vtAPIKey string) {

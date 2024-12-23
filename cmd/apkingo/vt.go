@@ -74,12 +74,14 @@ func vtScanFile(path string, vtapikey string) error {
 	s := client.NewFileScanner()
 	f, err := os.Open(path)
 	if err != nil {
+		logError("error opening file", err)
 		return err
 	}
 	defer f.Close()
 
 	analysis, err := s.Scan(f, getFileName(path), progressCh)
 	if err != nil {
+		logError("error scanning file", err)
 		return err
 	}
 
@@ -94,6 +96,7 @@ func (androidapp *AndroidApp) setVTInfo(apiKey string) error {
 	client := vt.NewClient(apiKey)
 	file, err := client.GetObject(vt.URL("files/" + hash))
 	if err != nil {
+		logError("error getting object from VirusTotal", err)
 		return err
 	}
 
