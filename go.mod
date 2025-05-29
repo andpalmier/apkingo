@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/VirusTotal/vt-go v1.0.1
-	github.com/avast/apkverifier v0.0.0-20250307094612-2d1e0e700379
+	github.com/avast/apkverifier v0.0.0-20250423072602-ae3fe93e1fa9
 	github.com/fatih/color v1.18.0
 	github.com/n0madic/google-play-scraper v0.0.0-20231014122808-52dbf3ade79b
 	github.com/parnurzeal/gorequest v0.3.0
@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	github.com/avast/apkparser v0.0.0-20250307094510-e2100ee9c0f5 // indirect
+	github.com/avast/apkparser v0.0.0-20250423072857-abc1843ceb56 // indirect
 	github.com/elazarl/goproxy v0.0.0-20231017160920-1fe6677f404d // indirect
 	github.com/k3a/html2text v1.2.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
@@ -26,6 +26,6 @@ require (
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	golang.org/x/net v0.37.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )
