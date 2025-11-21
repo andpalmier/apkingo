@@ -1,5 +1,4 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
+version: 2
 before:
   hooks:
     # You may remove this if you don't use go modules.
@@ -7,18 +6,25 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - env:
+  - id: default
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
-      - windows
       - darwin
-    main: ./cmd/apkingo/
-
+    main: ./cmd/apkingo
+  - id: windows
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+    main: ./cmd/apkingo
 
 archives:
-  - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of uname.
+  - id: nix
+    builds:
+      - default
+    format: tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -26,17 +32,35 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
-    format_overrides:
-    - goos: windows
-      format: zip
+  - id: windows
+    builds:
+      - windows
+    format: zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
+
+dockers:
+  - image_templates:
+      - "ghcr.io/andpalmier/apkingo:{{ .Tag }}"
+      - "ghcr.io/andpalmier/apkingo:latest"
+    dockerfile: Dockerfile.release
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    goos: linux
+    goarch: amd64

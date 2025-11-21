@@ -1,0 +1,29 @@
+# Binaries
+apkingo
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Output
+output.json
+dist/
+
+# IDEs
+.vscode
+.idea
+*.iml
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Tests
+test.json
+test
+
+# User exceptions
+!test/aliexpress.apk
+!test/snapseed.apk
+!test/F-Droid.apk

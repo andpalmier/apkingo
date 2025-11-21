@@ -2,107 +2,46 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
-	"github.com/shogo82148/androidbinary/apk"
+	"github.com/andpalmier/apkingo/internal/analyzer"
+	"github.com/andpalmier/apkingo/internal/config"
+	"github.com/andpalmier/apkingo/internal/report"
+	"github.com/andpalmier/apkingo/internal/ui"
+	"github.com/andpalmier/apkingo/internal/vt"
 )
-
-var (
-	apkPath  string
-	jsonFile string
-	country  string
-	vtAPIKey string
-	kAPIKey  string
-	vtUpload = false
-)
-
-const (
-	kAPImsg = "[i] Koodous API key not found, you can provide it with the -kapi flag or " +
-		"export it using the env variable KOODOUS_API_KEY"
-	vtAPImsg = "[i] VirusTotal API key not found, you can provide it with the -vtapi flag or" +
-		"export it using the env variable VT_API_KEY)"
-)
-
-func init() {
-	flag.StringVar(&jsonFile, "json", "", "Path to export analysis in JSON format")
-	flag.StringVar(&apkPath, "apk", "", "Path to APK file")
-	flag.StringVar(&country, "country", "us", "Country code of the Play Store")
-	flag.StringVar(&vtAPIKey, "vtapi", "", "VirusTotal API key")
-	flag.StringVar(&kAPIKey, "kapi", "", "Koodous API key")
-}
 
 func main() {
-	flag.Parse()
-	if apkPath == "" {
+	cfg := config.Load()
+
+	if cfg.APKPath == "" {
 		log.Fatalf("No APK specified, please provide the path using the -apk flag.\n")
 	}
 
-	vtAPIKey = getAPIKey(vtAPIKey, "VT_API_KEY", vtAPImsg)
-	kAPIKey = getAPIKey(kAPIKey, "KOODOUS_API_KEY", kAPImsg)
+	printer := ui.NewPrinter(cfg.NoColor)
+	reporter := report.NewReporter(printer)
 
-	app := AndroidApp{}
+	app := analyzer.AndroidApp{}
 
-	if err := app.processAPK(apkPath, country, vtAPIKey, kAPIKey); err != nil {
+	if err := app.ProcessAPK(cfg.APKPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey); err != nil {
 		log.Fatalf("Error processing APK: %v", err)
 	}
 
-	printBanner()
-	printAll(&app)
+	reporter.PrintBanner()
+	reporter.PrintAll(&app)
 
-	if jsonFile != "" {
-		app.ExportJSON(jsonFile)
-	}
-
-	if vtUpload {
-		askToUploadToVT(apkPath, vtAPIKey)
-	}
-}
-
-func (app *AndroidApp) processAPK(apkPath, country, vtAPIKey, koodousAPI string) error {
-	pkg, err := loadAPK(apkPath)
-	if err != nil {
-		return fmt.Errorf("error loading APK: %s", err)
-	}
-	defer pkg.Close()
-
-	if err = app.setGeneralInfo(pkg); err != nil {
-		log.Printf("error getting general information: %s\n", err)
-	}
-
-	if err = app.setHashes(apkPath); err != nil {
-		return fmt.Errorf("error setting hashes: %s\n", err)
-	}
-
-	if err = app.setCertInfo(apkPath); err != nil {
-		log.Printf("error getting certificate information: %s\n", err)
-	}
-
-	if err = app.setPlayStoreInfo(country); err != nil {
-		log.Printf("error getting Play Store information: %s\n", err)
-	}
-
-	if koodousAPI != "" {
-		if err = app.setKoodousInfo(koodousAPI); err != nil {
-			log.Printf("error getting Koodous information: %s\n", err)
+	if cfg.JSONFile != "" {
+		if err := app.ExportJSON(cfg.JSONFile); err != nil {
+			log.Fatalf("Failed to export JSON: %v", err)
 		}
 	}
 
-	if vtAPIKey != "" {
-		if err = app.setVTInfo(vtAPIKey); err != nil {
-			log.Printf("error getting VirusTotal information: %s\n", err)
-			vtUpload = true
-		}
+	if cfg.VTUpload {
+		askToUploadToVT(cfg.APKPath, cfg.VTAPIKey)
 	}
-
-	return nil
-}
-
-func loadAPK(filePath string) (*apk.Apk, error) {
-	return apk.OpenFile(filePath)
 }
 
 func askToUploadToVT(apkPath, vtAPIKey string) {
@@ -111,6 +50,8 @@ func askToUploadToVT(apkPath, vtAPIKey string) {
 	answer.Scan()
 	ans := strings.ToLower(answer.Text())
 	if ans == "yes" || ans == "y" {
-		vtScanFile(apkPath, vtAPIKey)
+		if err := vt.ScanFile(apkPath, vtAPIKey); err != nil {
+			log.Fatalf("VirusTotal scan failed: %v", err)
+		}
 	}
 }
