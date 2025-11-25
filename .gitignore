@@ -24,6 +24,5 @@ test.json
 test/*
 
 # User exceptions
-!test/aliexpress.apk
 !test/snapseed.apk
 !test/F-Droid.apk
