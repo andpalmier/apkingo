@@ -21,7 +21,7 @@ dist/
 
 # Tests
 test.json
-test
+test/*
 
 # User exceptions
 !test/aliexpress.apk

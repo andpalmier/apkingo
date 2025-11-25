@@ -44,6 +44,18 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
 
+brews:
+  - name: apkingo
+    repository:
+      owner: andpalmier
+      name: homebrew-tap
+    homepage: "https://github.com/andpalmier/apkingo"
+    description: "Tool to extract info from APK files"
+    license: "Apache-2.0"
+    folder: Formula
+    test: |
+      system "#{bin}/apkingo --help"
+
 checksum:
   name_template: 'checksums.txt'
 snapshot:

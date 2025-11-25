@@ -57,6 +57,13 @@ Download the pre-compiled binary for your system from the [Releases](https://git
 go install github.com/andpalmier/apkingo/cmd/apkingo@latest
 ```
 
+### From Homebrew
+
+```bash
+brew tap andpalmier/tap
+brew install apkingo
+```
+
 ## Usage
 
 ### Using Docker (Recommended)

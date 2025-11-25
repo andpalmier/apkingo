@@ -2,13 +2,14 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 )
 
 const (
 	kAPImsg = "[i] Koodous API key not found, you can provide it with the -kapi flag or " +
 		"export it using the env variable KOODOUS_API_KEY"
-	vtAPImsg = "[i] VirusTotal API key not found, you can provide it with the -vtapi flag or" +
+	vtAPImsg = "[i] VirusTotal API key not found, you can provide it with the -vtapi flag or " +
 		"export it using the env variable VT_API_KEY)"
 )
 
@@ -46,6 +47,9 @@ func Load() *Config {
 func getAPIKey(flagValue, envVar, msg string) string {
 	if flagValue == "" {
 		flagValue = os.Getenv(envVar)
+	}
+	if flagValue == "" && msg != "" {
+		fmt.Println(msg)
 	}
 	return flagValue
 }
