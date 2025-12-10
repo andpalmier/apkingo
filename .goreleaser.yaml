@@ -22,9 +22,10 @@ builds:
 
 archives:
   - id: nix
-    builds:
+    ids:
       - default
-    format: tar.gz
+    formats:
+      - tar.gz
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -33,9 +34,10 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
   - id: windows
-    builds:
+    ids:
       - windows
-    format: zip
+    formats:
+      - zip
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -44,7 +46,7 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
 
-brews:
+homebrew_casks:
   - name: apkingo
     repository:
       owner: andpalmier
@@ -52,7 +54,7 @@ brews:
     homepage: "https://github.com/andpalmier/apkingo"
     description: "Tool to extract info from APK files"
     license: "Apache-2.0"
-    directory: Formula
+    directory: Casks
     test: |
       system "#{bin}/apkingo --help"
 
@@ -67,7 +69,7 @@ changelog:
       - '^docs:'
       - '^test:'
 
-dockers:
+dockers_v2:
   - image_templates:
       - "ghcr.io/andpalmier/apkingo:{{ .Tag }}"
       - "ghcr.io/andpalmier/apkingo:latest"
