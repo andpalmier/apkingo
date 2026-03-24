@@ -1,13 +1,11 @@
 module github.com/andpalmier/apkingo
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	github.com/VirusTotal/vt-go v1.1.0
 	github.com/avast/apkverifier v0.0.0-20251022140917-74acdc5f8b3f
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/n0madic/google-play-scraper v0.0.0-20231014122808-52dbf3ade79b
 	github.com/parnurzeal/gorequest v0.3.0
 	github.com/shogo82148/androidbinary v1.0.5
@@ -28,5 +26,5 @@ require (
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 )
