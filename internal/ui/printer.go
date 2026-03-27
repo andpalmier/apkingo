@@ -57,104 +57,104 @@ func (p *Printer) GetOut() io.Writer {
 
 func (p *Printer) PrintSectionHeader(title string) {
 	p.Flush()
-	fmt.Fprintln(p.out)
-	p.yellow.Fprintf(p.out, "─── %s ───\n", strings.ToUpper(title))
+	_, _ = fmt.Fprintln(p.out)
+	_, _ = p.yellow.Fprintf(p.out, "─── %s ───\n", strings.ToUpper(title))
 }
 
 func (p *Printer) PrintKV(key, value string) {
-	fmt.Fprintf(p.tw, "%s:\t", key)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
 	if value != "" && value != "<nil>" && value != "[]" {
-		p.cyan.Fprintln(p.tw, value)
+		_, _ = p.cyan.Fprintln(p.tw, value)
 	} else {
-		p.italic.Fprintln(p.tw, "not found")
+		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintKVRed(key, value string) {
-	fmt.Fprintf(p.tw, "%s:\t", key)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
 	if value != "" && value != "<nil>" && value != "[]" {
-		p.red.Fprintln(p.tw, value)
+		_, _ = p.red.Fprintln(p.tw, value)
 	} else {
-		p.italic.Fprintln(p.tw, "not found")
+		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintKVRedBold(key, value string) {
-	fmt.Fprintf(p.tw, "%s:\t", key)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
 	if value != "" && value != "<nil>" && value != "[]" {
-		p.red.Add(color.Bold).Fprintln(p.tw, value)
+		_, _ = p.red.Add(color.Bold).Fprintln(p.tw, value)
 	} else {
-		p.italic.Fprintln(p.tw, "not found")
+		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintList(items []string) {
 	if len(items) == 0 {
-		p.italic.Fprintln(p.out, "none")
+		_, _ = p.italic.Fprintln(p.out, "none")
 		return
 	}
 	for _, item := range items {
-		fmt.Fprintf(p.out, " - %s\n", item)
+		_, _ = fmt.Fprintf(p.out, " - %s\n", item)
 	}
 }
 
 func (p *Printer) PrintBanner() {
 	banner := `
- ┌─┐┌─┐┬┌─┬┌┐┌┌─┐┌─┐
- ├─┤├─┘├┴┐│││││ ┬│ │
- ┴ ┴┴  ┴ ┴┴┘└┘└─┘└─┘
+  ┌─┐┌─┐┬┌─┬┌┐┌┌─┐┌─┐
+  ├─┤├─┘├┴┐│││││ ┬│ │
+  ┴ ┴┴  ┴ ┴┴┘└┘└─┘└─┘
 by @andpalmier
 `
-	p.cyan.Fprintln(p.out, banner)
+	_, _ = p.cyan.Fprintln(p.out, banner)
 }
 
 func (p *Printer) PrintTitle(title string) {
 	p.Flush() // Flush previous section
-	p.yellow.Fprintf(p.out, "\n* %s\n", title)
+	_, _ = p.yellow.Fprintf(p.out, "\n* %s\n", title)
 }
 
 func (p *Printer) PrintLabelValue(label, value string) {
-	fmt.Fprintf(p.tw, "%s:\t", label)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", label)
 	if value != "" && value != "<nil>" && value != "[]" {
-		p.cyan.Fprintln(p.tw, value)
+		_, _ = p.cyan.Fprintln(p.tw, value)
 	} else {
-		p.italic.Fprintln(p.tw, "not found")
+		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintLabelValueIndent(label, value string) {
-	fmt.Fprintf(p.tw, "\t%s:\t", label)
+	_, _ = fmt.Fprintf(p.tw, "\t%s:\t", label)
 	if value != "" && value != "<nil>" && value != "[]" {
-		p.cyan.Fprintln(p.tw, value)
+		_, _ = p.cyan.Fprintln(p.tw, value)
 	} else {
-		p.italic.Fprintln(p.tw, "not found")
+		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintError(msg string) {
 	p.Flush()
-	p.red.Fprintln(p.out, msg)
+	_, _ = p.red.Fprintln(p.out, msg)
 }
 
 func (p *Printer) PrintSuccess(msg string) {
 	p.Flush()
-	p.cyan.Fprintln(p.out, msg)
+	_, _ = p.cyan.Fprintln(p.out, msg)
 }
 
 func (p *Printer) PrintText(msg string) {
 	p.Flush()
-	fmt.Fprintln(p.out, msg)
+	_, _ = fmt.Fprintln(p.out, msg)
 }
 
 func (p *Printer) PrintItalic(msg string) {
 	p.Flush()
-	p.italic.Fprintln(p.out, msg)
+	_, _ = p.italic.Fprintln(p.out, msg)
 }
 
 func (p *Printer) Printf(format string, a ...interface{}) {
-	fmt.Fprintf(p.tw, format, a...)
+	_, _ = fmt.Fprintf(p.tw, format, a...)
 }
 
 func (p *Printer) Println(a ...interface{}) {
-	fmt.Fprintln(p.tw, a...)
+	_, _ = fmt.Fprintln(p.tw, a...)
 }

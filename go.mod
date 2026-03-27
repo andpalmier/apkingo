@@ -2,7 +2,8 @@ module github.com/andpalmier/apkingo
 
 go 1.24.0
 
-toolchain go1.24.1
+//go:build toolchain
+//go:toolchain go1.23
 
 require (
 	github.com/VirusTotal/vt-go v1.1.0

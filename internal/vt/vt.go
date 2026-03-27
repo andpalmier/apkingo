@@ -85,7 +85,7 @@ func ScanFile(path string, vtapikey string) error {
 			if progress >= 100 {
 				status = "scanning..."
 			}
-			fmt.Printf("\r%s %s %4.1f%%", path, status, progress)
+			_, _ = fmt.Printf("\r%s %s %4.1f%%", path, status, progress)
 		}
 	}()
 
@@ -104,8 +104,8 @@ func ScanFile(path string, vtapikey string) error {
 		return err
 	}
 
-	fmt.Println("\n\nFile uploaded. The analysis may take some time.")
-	fmt.Printf("\nTrack the analysis progress at: https://www.virustotal.com/gui/file-analysis/%s\n\n", analysis.ID())
+	_, _ = fmt.Println("\n\nFile uploaded. The analysis may take some time.")
+	_, _ = fmt.Printf("\nTrack the analysis progress at: https://www.virustotal.com/gui/file-analysis/%s\n\n", analysis.ID())
 	return nil
 }
 
