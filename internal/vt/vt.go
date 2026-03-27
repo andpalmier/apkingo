@@ -4,12 +4,20 @@ package vt
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/VirusTotal/vt-go"
+	"github.com/andpalmier/apkingo/internal/constants"
 	"github.com/andpalmier/apkingo/internal/utils"
 )
+
+// newClient creates a VirusTotal client with custom HTTP timeout.
+func newClient(apiKey string) *vt.Client {
+	httpClient := &http.Client{Timeout: constants.DefaultHTTPTimeout}
+	return vt.NewClient(apiKey, vt.WithHTTPClient(httpClient))
+}
 
 // VTAnalysStats - struct for analysis details by VirusTotal
 type VTAnalysStats struct {
@@ -89,7 +97,7 @@ func ScanFile(path string, vtapikey string) error {
 		}
 	}()
 
-	client := vt.NewClient(vtapikey)
+	client := newClient(vtapikey)
 	s := client.NewFileScanner()
 	f, err := os.Open(path)
 	if err != nil {
@@ -115,7 +123,7 @@ func ScanFile(path string, vtapikey string) error {
 
 // GetInfo retrieves information from VirusTotal using VT API and sha256 hash
 func GetInfo(apiKey, hash string) (*VirusTotalInfo, error) {
-	client := vt.NewClient(apiKey)
+	client := newClient(apiKey)
 	//nolint:govet // vt.URL is not a printf-style function, string concatenation is intentional
 	file, err := client.GetObject(vt.URL("files/%s", hash))
 	if err != nil {

@@ -5,45 +5,30 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
 )
 
-// SetHashes calculates hashes of the APK file
+// SetHashes calculates MD5, SHA1, and SHA256 hashes of the APK file.
+// It reads the file once into memory and computes all hashes from that data.
+// This is more efficient than reading the file multiple times for each hash.
 func (app *AndroidApp) SetHashes(path string) error {
-	file, err := os.Open(path)
+	// Read the entire file into memory once
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("cannot open file path: %w", err)
-	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
-		}
-	}()
-
-	h256 := sha256.New()
-	if _, err = io.Copy(h256, file); err != nil {
-		return fmt.Errorf("cannot compute sha256 hash: %w", err)
-	}
-	app.Hashes.Sha256 = fmt.Sprintf("%x", h256.Sum(nil))
-	if _, err = file.Seek(0, io.SeekStart); err != nil {
-		return err
+		return fmt.Errorf("failed to read file %q: %w", path, err)
 	}
 
-	h1 := sha1.New()
-	if _, err = io.Copy(h1, file); err != nil {
-		return fmt.Errorf("cannot compute sha1 hash: %w", err)
-	}
-	app.Hashes.Sha1 = fmt.Sprintf("%x", h1.Sum(nil))
-	if _, err = file.Seek(0, io.SeekStart); err != nil {
-		return err
-	}
+	// Compute SHA256
+	sha256Hash := sha256.Sum256(data)
+	app.Hashes.Sha256 = fmt.Sprintf("%x", sha256Hash)
 
-	hmd5 := md5.New()
-	if _, err = io.Copy(hmd5, file); err != nil {
-		return fmt.Errorf("cannot compute md5 hash: %w", err)
-	}
-	app.Hashes.Md5 = fmt.Sprintf("%x", hmd5.Sum(nil))
+	// Compute SHA1
+	sha1Hash := sha1.Sum(data)
+	app.Hashes.Sha1 = fmt.Sprintf("%x", sha1Hash)
+
+	// Compute MD5
+	md5Hash := md5.Sum(data)
+	app.Hashes.Md5 = fmt.Sprintf("%x", md5Hash)
 
 	return nil
 }

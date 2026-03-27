@@ -84,6 +84,7 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string)
 		defer wg.Done()
 		if err := app.SetPlayStoreInfo(country); err != nil {
 			app.Errors.PlayStore = err
+			// Error is stored for reporting and will be displayed in output
 		}
 	}()
 
@@ -100,12 +101,12 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string)
 		}()
 	}
 
-	// VirusTotal
+	// VirusTotal - uses SHA256 hash for file lookup
 	if vtAPIKey != "" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if vtInfo, err := vt.GetInfo(vtAPIKey, app.Hashes.Sha1); err != nil {
+			if vtInfo, err := vt.GetInfo(vtAPIKey, app.Hashes.Sha256); err != nil {
 				app.Errors.VT = err
 			} else {
 				app.VirusTotal = vtInfo
@@ -119,9 +120,10 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string)
 	return nil
 }
 
-// ExportJSON exports AndroidApp struct to a JSON file
+// ExportJSON exports AndroidApp struct to a JSON file.
+// It creates a pretty-printed JSON file with 2-space indentation.
+// File permissions are set to 0600 (owner read/write only) for security.
 func (app *AndroidApp) ExportJSON(jsonpath string) error {
-	// Validate path
 	if jsonpath == "" {
 		return fmt.Errorf("json export path cannot be empty")
 	}
@@ -132,14 +134,14 @@ func (app *AndroidApp) ExportJSON(jsonpath string) error {
 		return fmt.Errorf("failed to create JSON file %q: %w", jsonpath, err)
 	}
 	defer func() {
-		if err := file.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to close JSON file: %v\n", err)
+		if closeErr := file.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close JSON file: %v\n", closeErr)
 		}
 	}()
 
-	// Use json.Encoder for more efficient streaming
+	// Use json.Encoder for pretty-printed output with 2-space indent
 	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "\t")
+	encoder.SetIndent("", "  ")
 
 	if err := encoder.Encode(app); err != nil {
 		return fmt.Errorf("failed to encode JSON to %q: %w", jsonpath, err)

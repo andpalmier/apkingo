@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/andpalmier/apkingo/internal/analyzer"
+	"github.com/andpalmier/apkingo/internal/constants"
 	"github.com/andpalmier/apkingo/internal/ui"
 	"github.com/andpalmier/apkingo/internal/utils"
 	"github.com/fatih/color"
@@ -161,7 +162,7 @@ func (r *Reporter) PrintMetadata(metadata map[string]string) {
 	hasContent := false
 	for key, value := range metadata {
 		// Skip empty values
-		if value != "" && value != "<nil>" && value != "[]" {
+		if value != "" && value != constants.NilValue && value != constants.EmptySlice {
 			r.printer.PrintKV(key, value)
 			hasContent = true
 		}
@@ -349,4 +350,81 @@ func (r *Reporter) PrintAll(app *analyzer.AndroidApp) {
 	r.PrintKoodousInfo(app)
 	r.PrintVTInfo(app)
 	r.printer.Flush()
+}
+
+// PrintBatchSummary prints a summary of multiple APK analysis results.
+func (r *Reporter) PrintBatchSummary(results map[string]*analyzer.AndroidApp, failed []string) {
+	r.printer.PrintSectionHeader("Batch Analysis Summary")
+	r.printer.Printf("Total APKs analyzed: %d, Failed: %d\n\n", len(results), len(failed))
+
+	// Print header
+	r.printer.Printf("%-40s %-10s %-15s %-10s\n", "Package", "Version", "VT Result", "Rating")
+	r.printer.PrintText(strings.Repeat("-", 80))
+
+	vtClean := 0
+	vtMalicious := 0
+	vtUnknown := 0
+
+	for _, app := range results {
+		pkgName := app.PackageName
+		if pkgName == "" {
+			pkgName = "Unknown"
+		}
+
+		version := app.Version
+		if version == "" {
+			version = "N/A"
+		}
+
+		// Determine VT result
+		vtResult := "N/A"
+		if app.VirusTotal != nil && app.VirusTotal.AnalysStats != nil {
+			malicious := app.VirusTotal.AnalysStats.Malicious
+			total := malicious + app.VirusTotal.AnalysStats.Harmless +
+				app.VirusTotal.AnalysStats.Suspicious + app.VirusTotal.AnalysStats.Undetected
+			if total > 0 {
+				vtResult = fmt.Sprintf("%d/%d", malicious, total)
+				if malicious > 0 {
+					vtMalicious++
+				} else {
+					vtClean++
+				}
+			}
+		} else {
+			vtUnknown++
+		}
+
+		// Determine Koodous result
+		koodousResult := "N/A"
+		if app.Koodous != nil {
+			if app.Koodous.Detected {
+				koodousResult = "Detected"
+			} else {
+				koodousResult = "Clean"
+			}
+		}
+
+		r.printer.Printf("%-40s %-10s %-15s %-10s\n",
+			truncateString(pkgName, 38),
+			truncateString(version, 8),
+			truncateString(vtResult, 13),
+			truncateString(koodousResult, 8),
+		)
+	}
+
+	r.printer.Flush()
+
+	// Print summary statistics
+	fmt.Println()
+	r.printer.PrintSectionHeader("Summary Statistics")
+	r.printer.Printf("VirusTotal: %d clean, %d malicious, %d unknown\n", vtClean, vtMalicious, vtUnknown)
+	r.printer.Printf("Total APKs processed: %d, Failed: %d\n", len(results), len(failed))
+}
+
+// truncateString truncates a string to the specified length.
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen-3] + "..."
 }

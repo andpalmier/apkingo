@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/andpalmier/apkingo/internal/constants"
 )
 
 const (
@@ -15,27 +17,41 @@ const (
 
 type Config struct {
 	APKPath  string
+	DirPath  string
 	JSONFile string
 	Country  string
 	VTAPIKey string
 	KAPIKey  string
 	VTUpload bool
-	NoColor  bool
 }
 
 func Load() *Config {
 	cfg := &Config{}
 	flag.StringVar(&cfg.JSONFile, "json", "", "Path to export analysis in JSON format")
-	flag.StringVar(&cfg.APKPath, "apk", "", "Path to APK file")
-	flag.StringVar(&cfg.Country, "country", "us", "Country code of the Play Store")
+	flag.StringVar(&cfg.APKPath, "apk", "", "Path to APK or XAPK file")
+	flag.StringVar(&cfg.DirPath, "dir", "", "Analyze all APKs in a directory")
+	flag.StringVar(&cfg.Country, "country", constants.DefaultCountry, "Country code of the Play Store")
 	flag.StringVar(&cfg.VTAPIKey, "vtapi", "", "VirusTotal API key")
 	flag.StringVar(&cfg.KAPIKey, "kapi", "", "Koodous API key")
-	flag.BoolVar(&cfg.NoColor, "nocolor", false, "Disable colored output")
+	flag.BoolVar(&cfg.VTUpload, "vtupload", false, "Upload APK to VirusTotal after analysis")
 	flag.Parse()
 
+	// Validate input options
+	if cfg.APKPath != "" && cfg.DirPath != "" {
+		fmt.Println("Error: Cannot specify both -apk and -dir flags")
+		fmt.Println("Please use either -apk for a single file or -dir for a directory")
+		os.Exit(1)
+	}
+
+	if cfg.APKPath == "" && cfg.DirPath == "" {
+		fmt.Println("Error: No APK or directory specified")
+		fmt.Println("Please provide either -apk <path> or -dir <path>")
+		os.Exit(1)
+	}
+
 	if len(cfg.Country) != 2 {
-		// Default to "us" if invalid
-		cfg.Country = "us"
+		// Default to constants.DefaultCountry if invalid
+		cfg.Country = constants.DefaultCountry
 	}
 
 	cfg.VTAPIKey = getAPIKey(cfg.VTAPIKey, "VT_API_KEY", vtAPImsg)

@@ -8,27 +8,30 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/andpalmier/apkingo/internal/constants"
 	"github.com/fatih/color"
 )
 
+// Printer provides colored terminal output for APK analysis results.
 type Printer struct {
 	out     io.Writer
 	tw      *tabwriter.Writer
-	noColor bool
 	cyan    *color.Color
 	yellow  *color.Color
 	red     *color.Color
+	redBold *color.Color
 	italic  *color.Color
 }
 
-func NewPrinter(noColor bool) *Printer {
-	color.NoColor = noColor
+// NewPrinter creates a new Printer for terminal output.
+// It initializes all color objects including bold variants for warnings.
+func NewPrinter() *Printer {
 	p := &Printer{
 		out:     os.Stdout,
-		noColor: noColor,
 		cyan:    color.New(color.FgCyan),
 		yellow:  color.New(color.FgYellow),
 		red:     color.New(color.FgRed),
+		redBold: color.New(color.FgRed, color.Bold),
 		italic:  color.New(color.FgWhite, color.Italic),
 	}
 	p.tw = tabwriter.NewWriter(p.out, 0, 0, 2, ' ', 0)
@@ -41,6 +44,11 @@ func (p *Printer) Flush() {
 
 func (p *Printer) GetRed() *color.Color {
 	return p.red
+}
+
+// GetRedBold returns a red color with bold styling for warnings.
+func (p *Printer) GetRedBold() *color.Color {
+	return p.redBold
 }
 
 func (p *Printer) GetCyan() *color.Color {
@@ -63,7 +71,7 @@ func (p *Printer) PrintSectionHeader(title string) {
 
 func (p *Printer) PrintKV(key, value string) {
 	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
-	if value != "" && value != "<nil>" && value != "[]" {
+	if value != "" && value != constants.NilValue && value != constants.EmptySlice {
 		_, _ = p.cyan.Fprintln(p.tw, value)
 	} else {
 		_, _ = p.italic.Fprintln(p.tw, "not found")
@@ -72,7 +80,7 @@ func (p *Printer) PrintKV(key, value string) {
 
 func (p *Printer) PrintKVRed(key, value string) {
 	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
-	if value != "" && value != "<nil>" && value != "[]" {
+	if value != "" && value != constants.NilValue && value != constants.EmptySlice {
 		_, _ = p.red.Fprintln(p.tw, value)
 	} else {
 		_, _ = p.italic.Fprintln(p.tw, "not found")
@@ -81,8 +89,8 @@ func (p *Printer) PrintKVRed(key, value string) {
 
 func (p *Printer) PrintKVRedBold(key, value string) {
 	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
-	if value != "" && value != "<nil>" && value != "[]" {
-		_, _ = p.red.Add(color.Bold).Fprintln(p.tw, value)
+	if value != "" && value != constants.NilValue && value != constants.EmptySlice {
+		_, _ = p.redBold.Fprintln(p.tw, value)
 	} else {
 		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
@@ -106,39 +114,6 @@ func (p *Printer) PrintBanner() {
 by @andpalmier
 `
 	_, _ = p.cyan.Fprintln(p.out, banner)
-}
-
-func (p *Printer) PrintTitle(title string) {
-	p.Flush() // Flush previous section
-	_, _ = p.yellow.Fprintf(p.out, "\n* %s\n", title)
-}
-
-func (p *Printer) PrintLabelValue(label, value string) {
-	_, _ = fmt.Fprintf(p.tw, "%s:\t", label)
-	if value != "" && value != "<nil>" && value != "[]" {
-		_, _ = p.cyan.Fprintln(p.tw, value)
-	} else {
-		_, _ = p.italic.Fprintln(p.tw, "not found")
-	}
-}
-
-func (p *Printer) PrintLabelValueIndent(label, value string) {
-	_, _ = fmt.Fprintf(p.tw, "\t%s:\t", label)
-	if value != "" && value != "<nil>" && value != "[]" {
-		_, _ = p.cyan.Fprintln(p.tw, value)
-	} else {
-		_, _ = p.italic.Fprintln(p.tw, "not found")
-	}
-}
-
-func (p *Printer) PrintError(msg string) {
-	p.Flush()
-	_, _ = p.red.Fprintln(p.out, msg)
-}
-
-func (p *Printer) PrintSuccess(msg string) {
-	p.Flush()
-	_, _ = p.cyan.Fprintln(p.out, msg)
 }
 
 func (p *Printer) PrintText(msg string) {

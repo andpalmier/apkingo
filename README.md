@@ -21,6 +21,10 @@
 - **Metadata**: Application metadata
 - **Certificate**: Serial, thumbprint, validity, issuer, subject
 
+### File Format Support
+- **XAPK/APKS Support**: Automatically detects and extracts APKs from Android App Bundle archives
+- **Directory Analysis**: Batch analyze multiple APKs in a directory with the `-dir` flag
+
 ### External Intelligence
 - **Play Store Integration**: Scrapes application info from Google Play Store
 - **VirusTotal Analysis** (requires VirusTotal API key):
@@ -42,8 +46,7 @@
 
 ### Output & Export
 - **Enhanced Terminal Output**: Colored results with **bold red warnings** for malware indicators
-- **JSON Export**: Complete analysis export including all VirusTotal/Koodous data
-- **No Color Mode**: Disable colored output for logging
+- **JSON Export**: Pretty-printed analysis export including all VirusTotal/Koodous data
 
 ## Installation
 
@@ -74,6 +77,12 @@ You can run **apkingo** directly using Docker without installing Go or downloadi
 # Analyze an APK (mount the directory containing the APK)
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk
 
+# Analyze an XAPK file
+docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/app.xapk
+
+# Analyze all APKs in a directory
+docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -dir /mnt
+
 # Analyze and export JSON report
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk -json /mnt/report.json
 ```
@@ -81,7 +90,17 @@ docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk -
 ### CLI Usage
 
 ```bash
-apkingo -apk <path_to_apk> [options]
+# Analyze a single APK
+apkingo -apk <path_to_apk>
+
+# Analyze an XAPK/APKS file
+apkingo -apk <path_to_xapk>
+
+# Analyze all APKs in a directory
+apkingo -dir <path_to_directory>
+
+# Analyze with API keys and export JSON
+apkingo -apk <path_to_apk> -vtapi <VT_KEY> -kapi <KOODOUS_KEY> -json report.json
 ```
 
 ### API Keys
@@ -104,13 +123,13 @@ apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 
 | Flag | Description |
 |------|-------------|
-| `-apk` | Path to the APK file to analyze (required) |
+| `-apk` | Path to APK or XAPK file to analyze (required) |
+| `-dir` | Analyze all APKs in a directory |
 | `-json` | Path to export analysis in JSON format |
 | `-country` | Country code of the Play Store (default: "us") |
 | `-vtapi` | VirusTotal API key (can also use `VT_API_KEY` env var) |
 | `-kapi` | Koodous API key (can also use `KOODOUS_API_KEY` env var) |
 | `-vtupload` | Upload the APK to VirusTotal after analysis (interactive prompt) |
-| `-nocolor` | Disable colored output |
 
 ### Example
 

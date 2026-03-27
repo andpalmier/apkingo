@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andpalmier/apkingo/internal/constants"
 	"github.com/andpalmier/apkingo/internal/utils"
 	"github.com/parnurzeal/gorequest"
 )
@@ -27,17 +28,27 @@ type KoodousInfo struct {
 	Trusted        bool     `json:"trusted"`
 }
 
-// GetInfo saves Koodous information
+// GetInfo retrieves Koodous information for a given hash.
+// It makes an authenticated API request to Koodous with a timeout.
 func GetInfo(kapi, hash string) (*KoodousInfo, error) {
 	url := fmt.Sprintf("https://developer.koodous.com/apks/%s", hash)
-	resp, body, errs := gorequest.New().Get(url).Set("Authorization", "Token "+kapi).End()
+
+	// Create request with custom HTTP client having timeout
+	req := gorequest.New().
+		Timeout(constants.DefaultHTTPTimeout).
+		Get(url).
+		Set("Authorization", "Token "+kapi)
+
+	resp, body, errs := req.End()
 	if len(errs) > 0 {
 		utils.LogError("error reaching Koodous", errs[0])
-		return nil, fmt.Errorf("error reaching Koodous: %v", errs[0])
+		return nil, fmt.Errorf("error reaching Koodous: %w", errs[0])
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to close response body: %v\n", err)
+		if resp != nil && resp.Body != nil {
+			if err := resp.Body.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close response body: %v\n", err)
+			}
 		}
 	}()
 

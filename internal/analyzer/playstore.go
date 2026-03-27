@@ -30,7 +30,8 @@ type Developer struct {
 	URL  string `json:"url"`
 }
 
-// SetPlayStoreInfo searches for an app in Play Store using the package name
+// SetPlayStoreInfo searches for an app in Play Store using the package name.
+// It uses the country parameter to set both Country and Language for localized results.
 func (app *AndroidApp) SetPlayStoreInfo(country string) error {
 	packagename := app.PackageName
 	if packagename == "" {
@@ -38,9 +39,10 @@ func (app *AndroidApp) SetPlayStoreInfo(country string) error {
 		return errors.New("no package name found in the app")
 	}
 
+	// Use country code for both Country and Language to get localized results
 	playStoreInfo := playapp.New(packagename, playapp.Options{
 		Country:  country,
-		Language: "us",
+		Language: country, // Use same country code for language localization
 	})
 
 	if err := playStoreInfo.LoadDetails(); err != nil {

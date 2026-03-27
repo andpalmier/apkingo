@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+/tmp/
+dist/
+
+# Test files
+*_test.go
+.test/
+coverage.txt
+
+# Documentation
+*.md
+docs/
+img/
+
+# Development files
+.env
+.env.*
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Go build
+vendor/
+
+# Test APKs (these are large and not needed in Docker)
+test/*.apk
+
+# CI/CD
+.github/
+.circleci/
+.gitlab-ci.yml
+.azure/
+
+# Misc
+LICENSE
+Makefile
+docker-compose*.yml
+*.log
