@@ -5,7 +5,8 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /mnt/
 # Copy the binary built by GoReleaser
-COPY apkingo /usr/local/bin/apkingo
+ARG TARGETPLATFORM
+COPY $TARGETPLATFORM/apkingo /usr/local/bin/apkingo
 
 # Set entrypoint
 ENTRYPOINT ["apkingo"]
