@@ -23,8 +23,8 @@ jobs:
         with:
           go-version: stable
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2
+          version: v2.11
         env:
           GOTOOLCHAIN: auto

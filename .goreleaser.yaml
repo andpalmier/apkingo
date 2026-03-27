@@ -55,8 +55,6 @@ homebrew_casks:
     description: "Tool to extract info from APK files"
     license: "Apache-2.0"
     directory: Casks
-    test: |
-      system "#{bin}/apkingo --help"
 
 checksum:
   name_template: 'checksums.txt'
@@ -70,11 +68,11 @@ changelog:
       - '^test:'
 
 dockers_v2:
-  - image_templates:
-      - "ghcr.io/andpalmier/apkingo:{{ .Tag }}"
-      - "ghcr.io/andpalmier/apkingo:latest"
+  - images:
+      - "ghcr.io/andpalmier/apkingo"
+    tags:
+      - "{{ .Tag }}"
+      - "latest"
     dockerfile: Dockerfile.release
-    build_flag_templates:
-      - "--platform=linux/amd64"
-    goos: linux
-    goarch: amd64
+    platforms:
+      - linux/amd64
