@@ -36,7 +36,7 @@ func NewPrinter(noColor bool) *Printer {
 }
 
 func (p *Printer) Flush() {
-	p.tw.Flush()
+	_ = p.tw.Flush()
 }
 
 func (p *Printer) GetRed() *color.Color {

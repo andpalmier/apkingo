@@ -13,15 +13,23 @@ func TestGetAPIKey(t *testing.T) {
 	}
 
 	// Test case 2: Env var provided
-	os.Setenv("TEST_ENV_VAR", "env-key")
-	defer os.Unsetenv("TEST_ENV_VAR")
+	if err := os.Setenv("TEST_ENV_VAR", "env-key"); err != nil {
+		t.Fatalf("Failed to set env var: %v", err)
+	}
+	defer func() {
+		if err := os.Unsetenv("TEST_ENV_VAR"); err != nil {
+			t.Logf("Warning: failed to unset env var: %v", err)
+		}
+	}()
 	val = getAPIKey("", "TEST_ENV_VAR", "msg")
 	if val != "env-key" {
 		t.Errorf("Expected 'env-key', got '%s'", val)
 	}
 
 	// Test case 3: Neither provided
-	os.Unsetenv("TEST_ENV_VAR")
+	if err := os.Unsetenv("TEST_ENV_VAR"); err != nil {
+		t.Fatalf("Failed to unset env var: %v", err)
+	}
 	val = getAPIKey("", "TEST_ENV_VAR", "msg")
 	if val != "" {
 		t.Errorf("Expected empty string, got '%s'", val)

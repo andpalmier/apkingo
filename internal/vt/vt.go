@@ -96,7 +96,11 @@ func ScanFile(path string, vtapikey string) error {
 		utils.LogError("error opening file", err)
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	analysis, err := s.Scan(f, utils.GetFileName(path), progressCh)
 	if err != nil {

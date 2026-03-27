@@ -15,7 +15,11 @@ func (app *AndroidApp) SetHashes(path string) error {
 	if err != nil {
 		return fmt.Errorf("cannot open file path: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	h256 := sha256.New()
 	if _, err = io.Copy(h256, file); err != nil {

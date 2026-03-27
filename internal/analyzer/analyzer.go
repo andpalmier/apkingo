@@ -57,7 +57,11 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string)
 	if err != nil {
 		return fmt.Errorf("error loading APK: %s", err)
 	}
-	defer pkg.Close()
+	defer func() {
+		if err := pkg.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close APK: %v\n", err)
+		}
+	}()
 
 	if err = app.SetGeneralInfo(pkg); err != nil {
 		app.Errors.General = err
@@ -127,7 +131,11 @@ func (app *AndroidApp) ExportJSON(jsonpath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create JSON file %q: %w", jsonpath, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close JSON file: %v\n", err)
+		}
+	}()
 
 	// Use json.Encoder for more efficient streaming
 	encoder := json.NewEncoder(file)

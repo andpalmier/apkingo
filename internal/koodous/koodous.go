@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -34,7 +35,11 @@ func GetInfo(kapi, hash string) (*KoodousInfo, error) {
 		utils.LogError("error reaching Koodous", errs[0])
 		return nil, fmt.Errorf("error reaching Koodous: %v", errs[0])
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close response body: %v\n", err)
+		}
+	}()
 
 	if strings.Contains(body, "Not found") {
 		return nil, nil

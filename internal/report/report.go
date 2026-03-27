@@ -135,7 +135,7 @@ func (r *Reporter) PrintKoodousInfo(app *analyzer.AndroidApp) {
 	}
 
 	if kinfo.Trusted {
-		r.printer.GetCyan().Fprintf(r.printer.GetTabWriter(), "Trusted:\t%t\n", kinfo.Trusted)
+		_, _ = r.printer.GetCyan().Fprintf(r.printer.GetTabWriter(), "Trusted:\t%t\n", kinfo.Trusted)
 	} else {
 		r.printer.PrintKV("Trusted", fmt.Sprintf("%t", kinfo.Trusted))
 	}
@@ -283,46 +283,46 @@ func (r *Reporter) PrintVTInfo(app *analyzer.AndroidApp) {
 			// Components
 			if len(androguard.Activities) > 0 {
 				r.printer.Flush()
-				fmt.Fprintln(r.printer.GetOut())
-				r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Activities (%d):\n", len(androguard.Activities))
+				_, _ = fmt.Fprintln(r.printer.GetOut())
+				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Activities (%d):\n", len(androguard.Activities))
 				r.printer.PrintList(androguard.Activities)
 			}
 
 			if len(androguard.Services) > 0 {
 				r.printer.Flush()
-				fmt.Fprintln(r.printer.GetOut())
-				r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Services (%d):\n", len(androguard.Services))
+				_, _ = fmt.Fprintln(r.printer.GetOut())
+				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Services (%d):\n", len(androguard.Services))
 				r.printer.PrintList(androguard.Services)
 			}
 
 			if len(androguard.Providers) > 0 {
 				r.printer.Flush()
-				fmt.Fprintln(r.printer.GetOut())
-				r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Providers (%d):\n", len(androguard.Providers))
+				_, _ = fmt.Fprintln(r.printer.GetOut())
+				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Providers (%d):\n", len(androguard.Providers))
 				r.printer.PrintList(androguard.Providers)
 			}
 
 			if len(androguard.Receivers) > 0 {
 				r.printer.Flush()
-				fmt.Fprintln(r.printer.GetOut())
-				r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Receivers (%d):\n", len(androguard.Receivers))
+				_, _ = fmt.Fprintln(r.printer.GetOut())
+				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Receivers (%d):\n", len(androguard.Receivers))
 				r.printer.PrintList(androguard.Receivers)
 			}
 
 			if len(androguard.Libraries) > 0 {
 				r.printer.Flush()
-				fmt.Fprintln(r.printer.GetOut())
-				r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Libraries (%d):\n", len(androguard.Libraries))
+				_, _ = fmt.Fprintln(r.printer.GetOut())
+				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Libraries (%d):\n", len(androguard.Libraries))
 				r.printer.PrintList(androguard.Libraries)
 			}
 
 			// Dangerous Permissions - highlighted
 			if len(androguard.DangerPerm) > 0 {
 				r.printer.Flush()
-				fmt.Fprintln(r.printer.GetOut())
-				r.printer.GetRed().Add(color.Bold).Fprintf(r.printer.GetOut(), "Dangerous Permissions:  %d found\n", len(androguard.DangerPerm))
+				_, _ = fmt.Fprintln(r.printer.GetOut())
+				_, _ = r.printer.GetRed().Add(color.Bold).Fprintf(r.printer.GetOut(), "Dangerous Permissions:  %d found\n", len(androguard.DangerPerm))
 				for _, perm := range androguard.DangerPerm {
-					fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(perm))
+					_, _ = fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(perm))
 				}
 			}
 		}
