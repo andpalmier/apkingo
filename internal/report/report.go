@@ -66,20 +66,18 @@ func (r *Reporter) PrintPlayStoreInfo(app *analyzer.AndroidApp) {
 		r.printer.PrintItalic("App not found in Play Store")
 		return
 	}
-	if app.PlayStore != nil {
-		r.printer.PrintKV("URL", app.PlayStore.Url)
-		r.printer.PrintKV("Version", app.PlayStore.Version)
-		r.printer.PrintKV("Released", app.PlayStore.Release)
-		r.printer.PrintKV("Updated", app.PlayStore.Updated.Format("Jan 2, 2006"))
-		r.printer.PrintKV("Genre", app.PlayStore.Genre)
-		r.printer.PrintKV("Summary", app.PlayStore.Summary)
-		r.printer.PrintKV("Installs", app.PlayStore.Installs)
-		r.printer.PrintKV("Score", fmt.Sprintf("%v", app.PlayStore.Score))
-		r.printer.PrintKV("Developer ID", app.PlayStore.Developer.Id)
-		r.printer.PrintKV("Developer Name", app.PlayStore.Developer.Name)
-		r.printer.PrintKV("Developer Email", app.PlayStore.Developer.Mail)
-		r.printer.PrintKV("Developer URL", app.PlayStore.Developer.URL)
-	}
+	r.printer.PrintKV("URL", app.PlayStore.Url)
+	r.printer.PrintKV("Version", app.PlayStore.Version)
+	r.printer.PrintKV("Released", app.PlayStore.Release)
+	r.printer.PrintKV("Updated", app.PlayStore.Updated.Format("Jan 2, 2006"))
+	r.printer.PrintKV("Genre", app.PlayStore.Genre)
+	r.printer.PrintKV("Summary", app.PlayStore.Summary)
+	r.printer.PrintKV("Installs", app.PlayStore.Installs)
+	r.printer.PrintKV("Score", fmt.Sprintf("%v", app.PlayStore.Score))
+	r.printer.PrintKV("Developer ID", app.PlayStore.Developer.Id)
+	r.printer.PrintKV("Developer Name", app.PlayStore.Developer.Name)
+	r.printer.PrintKV("Developer Email", app.PlayStore.Developer.Mail)
+	r.printer.PrintKV("Developer URL", app.PlayStore.Developer.URL)
 }
 
 func (r *Reporter) PrintCertInfo(app *analyzer.AndroidApp) {
@@ -185,153 +183,150 @@ func (r *Reporter) PrintVTInfo(app *analyzer.AndroidApp) {
 		return
 	}
 	vtinfo := app.VirusTotal
-	if vtinfo != nil {
-		r.printer.PrintKV("URL", vtinfo.Url)
-		r.printer.PrintKV("Submission Date", vtinfo.SubmissDate.String())
-		r.printer.PrintKV("Submissions", fmt.Sprintf("%d", vtinfo.TimesSubmit))
-		r.printer.PrintKV("Last Analysis", vtinfo.LastAnalysis.String())
+	r.printer.PrintKV("URL", vtinfo.Url)
+	r.printer.PrintKV("Submission Date", vtinfo.SubmissDate.String())
+	r.printer.PrintKV("Submissions", fmt.Sprintf("%d", vtinfo.TimesSubmit))
+	r.printer.PrintKV("Last Analysis", vtinfo.LastAnalysis.String())
 
-		// Tags
-		if len(vtinfo.Tags) > 0 {
-			r.printer.PrintKV("Tags", strings.Join(vtinfo.Tags, ", "))
+	// Tags
+	if len(vtinfo.Tags) > 0 {
+		r.printer.PrintKV("Tags", strings.Join(vtinfo.Tags, ", "))
+	}
+
+	// Popular Threat Classification
+	if vtinfo.PopularThreatCategory != "" {
+		r.printer.PrintKVRedBold("Threat Category", vtinfo.PopularThreatCategory)
+	}
+	if vtinfo.PopularThreatName != "" {
+		r.printer.PrintKVRedBold("Threat Name", vtinfo.PopularThreatName)
+	}
+
+	// Reputation
+	if vtinfo.Reputation != 0 {
+		repText := fmt.Sprintf("%d", vtinfo.Reputation)
+		if vtinfo.Reputation < 0 {
+			r.printer.PrintKVRed("Reputation", repText)
+		} else {
+			r.printer.PrintKV("Reputation", repText)
+		}
+	}
+
+	// Crowdsourced Detections
+	if vtinfo.TotalCrowdsourcedSigma > 0 {
+		r.printer.PrintKVRedBold("Crowdsourced Sigma", fmt.Sprintf("%d detections", vtinfo.TotalCrowdsourcedSigma))
+	}
+	if vtinfo.TotalCrowdsourcedYara > 0 {
+		r.printer.PrintKVRedBold("Crowdsourced YARA", fmt.Sprintf("%d rules matched", vtinfo.TotalCrowdsourcedYara))
+	}
+	if vtinfo.TotalCrowdsourcedIDSHits > 0 {
+		r.printer.PrintKVRedBold("Crowdsourced IDS", fmt.Sprintf("%d hits", vtinfo.TotalCrowdsourcedIDSHits))
+	}
+
+	// Analysis Stats
+	if vtinfo.AnalysStats != nil {
+		r.printer.PrintSectionHeader("VT Analysis Stats")
+		r.printer.PrintKV("Harmless", fmt.Sprintf("%d", vtinfo.AnalysStats.Harmless))
+		if vtinfo.AnalysStats.Malicious > 0 {
+			r.printer.PrintKVRedBold("Malicious", fmt.Sprintf("%d", vtinfo.AnalysStats.Malicious))
+		} else {
+			r.printer.PrintKV("Malicious", fmt.Sprintf("%d", vtinfo.AnalysStats.Malicious))
+		}
+		r.printer.PrintKV("Suspicious", fmt.Sprintf("%d", vtinfo.AnalysStats.Suspicious))
+		r.printer.PrintKV("Undetected", fmt.Sprintf("%d", vtinfo.AnalysStats.Undetected))
+		r.printer.PrintKV("Failure", fmt.Sprintf("%d", vtinfo.AnalysStats.Failure))
+	}
+
+	// Votes
+	if vtinfo.Votes != nil {
+		r.printer.PrintSectionHeader("VT Votes")
+		votes := vtinfo.Votes
+		r.printer.PrintKV("Harmless", fmt.Sprintf("%d", votes.Harmless))
+
+		if votes.Malicious > 0 {
+			r.printer.PrintKVRedBold("Malicious", fmt.Sprintf("%d", votes.Malicious))
+		} else {
+			r.printer.PrintKV("Malicious", fmt.Sprintf("%d", votes.Malicious))
+		}
+	}
+
+	// Icon
+	if vtinfo.Icon != nil {
+		r.printer.PrintSectionHeader("VT Icon")
+		icon := vtinfo.Icon
+		r.printer.PrintKV("MD5", icon.Md5)
+		r.printer.PrintKV("DHash", icon.Dhash)
+	}
+
+	// Androguard
+	if vtinfo.Androguard != nil {
+		androguard := vtinfo.Androguard
+		r.printer.PrintSectionHeader("VT Androguard Analysis")
+
+		// Package and Version Info
+		if androguard.Package != "" {
+			r.printer.PrintKV("Package", androguard.Package)
+		}
+		if androguard.AndroidVersionCode != "" {
+			r.printer.PrintKV("Version Code", androguard.AndroidVersionCode)
+		}
+		if androguard.AndroidVersionName != "" {
+			r.printer.PrintKV("Version Name", androguard.AndroidVersionName)
+		}
+		if androguard.MinSdkVersion != "" {
+			r.printer.PrintKV("Min SDK", androguard.MinSdkVersion)
+		}
+		if androguard.TargetSdkVersion != "" {
+			r.printer.PrintKV("Target SDK", androguard.TargetSdkVersion)
+		}
+		if androguard.MainActivity != "" {
+			r.printer.PrintKV("Main Activity", androguard.MainActivity)
 		}
 
-		// Popular Threat Classification
-		if vtinfo.PopularThreatCategory != "" {
-			r.printer.PrintKVRedBold("Threat Category", vtinfo.PopularThreatCategory)
-		}
-		if vtinfo.PopularThreatName != "" {
-			r.printer.PrintKVRedBold("Threat Name", vtinfo.PopularThreatName)
-		}
-
-		// Reputation
-		if vtinfo.Reputation != 0 {
-			repText := fmt.Sprintf("%d", vtinfo.Reputation)
-			if vtinfo.Reputation < 0 {
-				r.printer.PrintKVRed("Reputation", repText)
-			} else {
-				r.printer.PrintKV("Reputation", repText)
-			}
+		// Components
+		if len(androguard.Activities) > 0 {
+			r.printer.Flush()
+			_, _ = fmt.Fprintln(r.printer.GetOut())
+			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Activities (%d):\n", len(androguard.Activities))
+			r.printer.PrintList(androguard.Activities)
 		}
 
-		// Crowdsourced Detections
-		if vtinfo.TotalCrowdsourcedSigma > 0 {
-			r.printer.PrintKVRedBold("Crowdsourced Sigma", fmt.Sprintf("%d detections", vtinfo.TotalCrowdsourcedSigma))
-		}
-		if vtinfo.TotalCrowdsourcedYara > 0 {
-			r.printer.PrintKVRedBold("Crowdsourced YARA", fmt.Sprintf("%d rules matched", vtinfo.TotalCrowdsourcedYara))
-		}
-		if vtinfo.TotalCrowdsourcedIDSHits > 0 {
-			r.printer.PrintKVRedBold("Crowdsourced IDS", fmt.Sprintf("%d hits", vtinfo.TotalCrowdsourcedIDSHits))
+		if len(androguard.Services) > 0 {
+			r.printer.Flush()
+			_, _ = fmt.Fprintln(r.printer.GetOut())
+			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Services (%d):\n", len(androguard.Services))
+			r.printer.PrintList(androguard.Services)
 		}
 
-		// Analysis Stats
-		if vtinfo.AnalysStats != nil {
-			r.printer.PrintSectionHeader("VT Analysis Stats")
-			r.printer.PrintKV("Harmless", fmt.Sprintf("%d", vtinfo.AnalysStats.Harmless))
-			if vtinfo.AnalysStats.Malicious > 0 {
-				r.printer.PrintKVRedBold("Malicious", fmt.Sprintf("%d", vtinfo.AnalysStats.Malicious))
-			} else {
-				r.printer.PrintKV("Malicious", fmt.Sprintf("%d", vtinfo.AnalysStats.Malicious))
-			}
-			r.printer.PrintKV("Suspicious", fmt.Sprintf("%d", vtinfo.AnalysStats.Suspicious))
-			r.printer.PrintKV("Undetected", fmt.Sprintf("%d", vtinfo.AnalysStats.Undetected))
-			r.printer.PrintKV("Failure", fmt.Sprintf("%d", vtinfo.AnalysStats.Failure))
+		if len(androguard.Providers) > 0 {
+			r.printer.Flush()
+			_, _ = fmt.Fprintln(r.printer.GetOut())
+			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Providers (%d):\n", len(androguard.Providers))
+			r.printer.PrintList(androguard.Providers)
 		}
 
-		// Votes
-		if vtinfo.Votes != nil {
-			r.printer.PrintSectionHeader("VT Votes")
-			votes := vtinfo.Votes
-			r.printer.PrintKV("Harmless", fmt.Sprintf("%d", votes.Harmless))
-
-			if votes.Malicious > 0 {
-				r.printer.PrintKVRedBold("Malicious", fmt.Sprintf("%d", votes.Malicious))
-			} else {
-				r.printer.PrintKV("Malicious", fmt.Sprintf("%d", votes.Malicious))
-			}
+		if len(androguard.Receivers) > 0 {
+			r.printer.Flush()
+			_, _ = fmt.Fprintln(r.printer.GetOut())
+			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Receivers (%d):\n", len(androguard.Receivers))
+			r.printer.PrintList(androguard.Receivers)
 		}
 
-		// Icon
-		if vtinfo.Icon != nil {
-			r.printer.PrintSectionHeader("VT Icon")
-			icon := vtinfo.Icon
-			r.printer.PrintKV("MD5", icon.Md5)
-			r.printer.PrintKV("DHash", icon.Dhash)
+		if len(androguard.Libraries) > 0 {
+			r.printer.Flush()
+			_, _ = fmt.Fprintln(r.printer.GetOut())
+			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Libraries (%d):\n", len(androguard.Libraries))
+			r.printer.PrintList(androguard.Libraries)
 		}
 
-		// Androguard
-		if vtinfo.Androguard != nil {
-			androguard := vtinfo.Androguard
-			r.printer.PrintSectionHeader("VT Androguard Analysis")
-
-			// Package and Version Info
-			if androguard.Package != "" {
-				r.printer.PrintKV("Package", androguard.Package)
-			}
-			if androguard.AndroidVersionCode != "" {
-				r.printer.PrintKV("Version Code", androguard.AndroidVersionCode)
-			}
-			if androguard.AndroidVersionName != "" {
-				r.printer.PrintKV("Version Name", androguard.AndroidVersionName)
-			}
-			if androguard.MinSdkVersion != "" {
-				r.printer.PrintKV("Min SDK", androguard.MinSdkVersion)
-			}
-			if androguard.TargetSdkVersion != "" {
-				r.printer.PrintKV("Target SDK", androguard.TargetSdkVersion)
-			}
-			if androguard.MainActivity != "" {
-				r.printer.PrintKV("Main Activity", androguard.MainActivity)
-			}
-
-			// Components
-			if len(androguard.Activities) > 0 {
-				r.printer.Flush()
-				_, _ = fmt.Fprintln(r.printer.GetOut())
-				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Activities (%d):\n", len(androguard.Activities))
-				r.printer.PrintList(androguard.Activities)
-			}
-
-			if len(androguard.Services) > 0 {
-				r.printer.Flush()
-				_, _ = fmt.Fprintln(r.printer.GetOut())
-				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Services (%d):\n", len(androguard.Services))
-				r.printer.PrintList(androguard.Services)
-			}
-
-			if len(androguard.Providers) > 0 {
-				r.printer.Flush()
-				_, _ = fmt.Fprintln(r.printer.GetOut())
-				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Providers (%d):\n", len(androguard.Providers))
-				r.printer.PrintList(androguard.Providers)
-			}
-
-			if len(androguard.Receivers) > 0 {
-				r.printer.Flush()
-				_, _ = fmt.Fprintln(r.printer.GetOut())
-				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Receivers (%d):\n", len(androguard.Receivers))
-				r.printer.PrintList(androguard.Receivers)
-			}
-
-			if len(androguard.Libraries) > 0 {
-				r.printer.Flush()
-				_, _ = fmt.Fprintln(r.printer.GetOut())
-				_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Libraries (%d):\n", len(androguard.Libraries))
-				r.printer.PrintList(androguard.Libraries)
-			}
-
-			// Dangerous Permissions - highlighted
-			if len(androguard.DangerPerm) > 0 {
-				r.printer.Flush()
-				_, _ = fmt.Fprintln(r.printer.GetOut())
-				_, _ = r.printer.GetRed().Add(color.Bold).Fprintf(r.printer.GetOut(), "Dangerous Permissions:  %d found\n", len(androguard.DangerPerm))
-				for _, perm := range androguard.DangerPerm {
-					_, _ = fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(perm))
-				}
+		// Dangerous Permissions - highlighted
+		if len(androguard.DangerPerm) > 0 {
+			r.printer.Flush()
+			_, _ = fmt.Fprintln(r.printer.GetOut())
+			_, _ = r.printer.GetRed().Add(color.Bold).Fprintf(r.printer.GetOut(), "Dangerous Permissions:  %d found\n", len(androguard.DangerPerm))
+			for _, perm := range androguard.DangerPerm {
+				_, _ = fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(perm))
 			}
 		}
-
 	}
 }
 

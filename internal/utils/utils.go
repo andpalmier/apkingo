@@ -44,6 +44,7 @@ var AndroidName = map[int]string{
 	34: "Android 14",
 	35: "Android 15",
 	36: "Android 16",
+	37: "Android 17",
 }
 
 // GetFileName retrieves a file name from a file path
