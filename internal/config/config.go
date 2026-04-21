@@ -16,13 +16,14 @@ const (
 )
 
 type Config struct {
-	APKPath  string
-	DirPath  string
-	JSONFile string
-	Country  string
-	VTAPIKey string
-	KAPIKey  string
-	VTUpload bool
+	APKPath     string
+	DirPath     string
+	JSONFile    string
+	Country     string
+	VTAPIKey    string
+	KAPIKey     string
+	VTUpload    bool
+	NoPlayStore bool
 }
 
 func Load() *Config {
@@ -34,6 +35,7 @@ func Load() *Config {
 	flag.StringVar(&cfg.VTAPIKey, "vtapi", "", "VirusTotal API key")
 	flag.StringVar(&cfg.KAPIKey, "kapi", "", "Koodous API key")
 	flag.BoolVar(&cfg.VTUpload, "vtupload", false, "Upload APK to VirusTotal after analysis")
+	flag.BoolVar(&cfg.NoPlayStore, "no-play-store", false, "Skip Play Store API calls for offline analysis")
 	flag.Parse()
 
 	// Validate input options

@@ -58,6 +58,10 @@ func (r *Reporter) PrintHash(hashes analyzer.Hashes) {
 
 func (r *Reporter) PrintPlayStoreInfo(app *analyzer.AndroidApp) {
 	r.printer.PrintSectionHeader("Play Store")
+	if app.NoPlayStore {
+		r.printer.PrintItalic("Analysis without Play Store")
+		return
+	}
 	if app.Errors.PlayStore != nil || app.PlayStore == nil {
 		r.printer.PrintItalic("App not found in Play Store")
 		return

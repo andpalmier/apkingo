@@ -13,19 +13,20 @@ import (
 
 // AndroidApp represents information extracted from an APK file
 type AndroidApp struct {
-	Name         string               `json:"name"`
-	PackageName  string               `json:"package-name"`
+	Name          string               `json:"name"`
+	PackageName   string               `json:"package-name"`
 	Version      string               `json:"version"`
 	MainActivity string               `json:"main-activity"`
 	MinimumSDK   int32                `json:"minimum-sdk"`
 	TargetSDK    int32                `json:"target-sdk"`
-	Hashes       Hashes               `json:"hashes"`
+	Hashes       Hashes              `json:"hashes"`
 	Permissions  []string             `json:"permissions"`
-	Metadata     []Metadata           `json:"metadata"`
-	Certificate  CertificateInfo      `json:"certificate"`
-	PlayStore    *PlayStoreInfo       `json:"playstore,omitempty"`
+	Metadata     []Metadata          `json:"metadata"`
+	Certificate  CertificateInfo     `json:"certificate"`
+	PlayStore    *PlayStoreInfo      `json:"playstore,omitempty"`
 	Koodous      *koodous.KoodousInfo `json:"koodous,omitempty"`
 	VirusTotal   *vt.VirusTotalInfo   `json:"virustotal,omitempty"`
+	NoPlayStore  bool                `json:"-"` // internal use only - skip Play Store
 	Errors       AnalysisErrors       `json:"-"` // internal use only
 }
 
@@ -52,7 +53,8 @@ type Metadata struct {
 }
 
 // ProcessAPK orchestrates the APK analysis
-func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string) error {
+// noPlayStore when true, skips Play Store API calls for offline analysis
+func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string, noPlayStore bool) error {
 	pkg, err := apk.OpenFile(apkPath)
 	if err != nil {
 		return fmt.Errorf("error loading APK: %s", err)
@@ -75,18 +77,23 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string)
 		app.Errors.Cert = err
 	}
 
+	// Track if user requested no Play Store
+	app.NoPlayStore = noPlayStore
+
 	// Run external API calls concurrently for better performance
 	var wg sync.WaitGroup
 
-	// PlayStore
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := app.SetPlayStoreInfo(country); err != nil {
-			app.Errors.PlayStore = err
-			// Error is stored for reporting and will be displayed in output
-		}
-	}()
+	// PlayStore - skip if noPlayStore flag is set
+	if !noPlayStore {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := app.SetPlayStoreInfo(country); err != nil {
+				app.Errors.PlayStore = err
+				// Error is stored for reporting and will be displayed in output
+			}
+		}()
+	}
 
 	// Koodous
 	if koodousAPI != "" {

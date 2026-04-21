@@ -41,7 +41,7 @@ func main() {
 	// Regular APK processing
 	app := analyzer.AndroidApp{}
 
-	if err := app.ProcessAPK(cfg.APKPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey); err != nil {
+	if err := app.ProcessAPK(cfg.APKPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey, cfg.NoPlayStore); err != nil {
 		log.Fatalf("Error processing APK: %v", err)
 	}
 
@@ -81,7 +81,7 @@ func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Repor
 
 		app := analyzer.AndroidApp{}
 
-		if err := app.ProcessAPK(apkPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey); err != nil {
+		if err := app.ProcessAPK(apkPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey, cfg.NoPlayStore); err != nil {
 			fmt.Printf("  [!] Failed to process: %v\n", err)
 			failed = append(failed, apkPath)
 			continue
@@ -120,7 +120,7 @@ func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Repor
 func processDirectory(cfg *config.Config, printer *ui.Printer, reporter *report.Reporter) {
 	fmt.Printf("[i] Analyzing APKs in directory: %s\n", cfg.DirPath)
 
-	results, failed, err := analyzer.AnalyzeDirectory(cfg.DirPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey)
+	results, failed, err := analyzer.AnalyzeDirectory(cfg.DirPath, cfg.Country, cfg.VTAPIKey, cfg.KAPIKey, cfg.NoPlayStore)
 	if err != nil {
 		log.Fatalf("Error analyzing directory: %v", err)
 	}
