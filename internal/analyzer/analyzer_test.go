@@ -13,7 +13,7 @@ func TestProcessAPK(t *testing.T) {
 	app := analyzer.AndroidApp{}
 
 	// Test with no API keys
-	err := app.ProcessAPK(apkPath, "us", "", "")
+	err := app.ProcessAPK(apkPath, "us", "", "", false)
 	if err != nil {
 		t.Fatalf("ProcessAPK failed: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestProcessAPK(t *testing.T) {
 
 func TestProcessAPK_FileNotFound(t *testing.T) {
 	app := analyzer.AndroidApp{}
-	err := app.ProcessAPK("nonexistent.apk", "us", "", "")
+	err := app.ProcessAPK("nonexistent.apk", "us", "", "", false)
 	if err == nil {
 		t.Error("Expected error for non-existent file, got nil")
 	}
