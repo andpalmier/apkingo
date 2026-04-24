@@ -25,6 +25,9 @@
 - **XAPK/APKS Support**: Automatically detects and extracts APKs from Android App Bundle archives
 - **Directory Analysis**: Batch analyze multiple APKs in a directory with the `-dir` flag
 
+### Offline Analysis
+- **No Play Store Required**: Use the `-no-play-store` flag to analyze APKs without internet access (useful in restricted network environments, air-gapped systems, or regions with limited connectivity)
+
 ### External Intelligence
 - **Play Store Integration**: Scrapes application info from Google Play Store
 - **VirusTotal Analysis** (requires VirusTotal API key):
@@ -129,6 +132,7 @@ apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 | `-country` | Country code of the Play Store (default: "us") |
 | `-vtapi` | VirusTotal API key (can also use `VT_API_KEY` env var) |
 | `-kapi` | Koodous API key (can also use `KOODOUS_API_KEY` env var) |
+| `-no-play-store` | Skip Play Store scraping for offline analysis |
 | `-vtupload` | Upload the APK to VirusTotal after analysis (interactive prompt) |
 
 ### Example
