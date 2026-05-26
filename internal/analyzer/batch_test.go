@@ -55,7 +55,7 @@ func TestAnalyzeDirectory_EmptyDir(t *testing.T) {
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	_, _, err = AnalyzeDirectory(tmpDir, "us", "", "", false)
+	_, _, err = AnalyzeDirectory(tmpDir, "us", "", "", "", false)
 	if err == nil {
 		t.Error("Expected error for empty directory")
 	}
@@ -71,14 +71,14 @@ func TestAnalyzeDirectory_NotADirectory(t *testing.T) {
 	}
 	defer func() { _ = os.Remove(tmpFile.Name()) }()
 
-	_, _, err = AnalyzeDirectory(tmpFile.Name(), "us", "", "", false)
+	_, _, err = AnalyzeDirectory(tmpFile.Name(), "us", "", "", "", false)
 	if err == nil {
 		t.Error("Expected error for non-directory path")
 	}
 }
 
 func TestAnalyzeDirectory_NonExistent(t *testing.T) {
-	_, _, err := AnalyzeDirectory("/nonexistent/path/12345", "us", "", "", false)
+	_, _, err := AnalyzeDirectory("/nonexistent/path/12345", "us", "", "", "", false)
 	if err == nil {
 		t.Error("Expected error for non-existent path")
 	}

@@ -8,10 +8,10 @@ import (
 )
 
 // AnalyzeDirectory analyzes all APK files in a given directory.
-// It takes country and API keys for external service lookups (VirusTotal, Koodous).
+// It takes country, locale, and API keys for external service lookups (Play Store, VirusTotal, Koodous).
 // noPlayStore when true, skips Play Store API calls for offline analysis.
 // Returns a map of file paths to AndroidApp results and a slice of failed paths.
-func AnalyzeDirectory(dirPath, country, vtAPIKey, koodousAPI string, noPlayStore bool) (map[string]*AndroidApp, []string, error) {
+func AnalyzeDirectory(dirPath, country, locale, vtAPIKey, koodousAPI string, noPlayStore bool) (map[string]*AndroidApp, []string, error) {
 	// Check if directory exists
 	info, err := os.Stat(dirPath)
 	if err != nil {
@@ -42,7 +42,7 @@ func AnalyzeDirectory(dirPath, country, vtAPIKey, koodousAPI string, noPlayStore
 		fmt.Printf("[%d/%d] Processing: %s\n", i+1, len(apkPaths), filepath.Base(apkPath))
 
 		app := &AndroidApp{}
-		if err := app.ProcessAPK(apkPath, country, vtAPIKey, koodousAPI, noPlayStore); err != nil {
+		if err := app.ProcessAPK(apkPath, country, locale, vtAPIKey, koodousAPI, noPlayStore); err != nil {
 			// Log error but continue with other files
 			fmt.Printf("  [!] Failed to process: %v\n", err)
 			failed = append(failed, apkPath)

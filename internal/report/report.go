@@ -42,11 +42,22 @@ func (r *Reporter) PrintGeneralInfo(app *analyzer.AndroidApp) {
 	}
 
 	r.printer.PrintKV("Name", app.Name)
+	if app.NameLocale != "" {
+		r.printer.PrintKV(fmt.Sprintf("Name (%s)", app.Locale), app.NameLocale)
+	}
 	r.printer.PrintKV("Package Name", app.PackageName)
-	r.printer.PrintKV("Version", app.Version)
+	r.printer.PrintKV("Version Name", app.VersionName)
+	if app.VersionCode != 0 {
+		r.printer.PrintKV("Version Code", fmt.Sprintf("%d", app.VersionCode))
+	}
 	r.printer.PrintKV("Main Activity", app.MainActivity)
 	r.printer.PrintKV("Minimum SDK", minSDK)
 	r.printer.PrintKV("Target SDK", targetSDK)
+	if len(app.Architectures) > 0 {
+		r.printer.PrintKV("Architectures", strings.Join(app.Architectures, ", "))
+	} else {
+		r.printer.PrintKV("Architectures", "none (pure Java/Kotlin)")
+	}
 }
 
 func (r *Reporter) PrintHash(hashes analyzer.Hashes) {
@@ -370,7 +381,7 @@ func (r *Reporter) PrintBatchSummary(results map[string]*analyzer.AndroidApp, fa
 			pkgName = "Unknown"
 		}
 
-		version := app.Version
+		version := app.VersionName
 		if version == "" {
 			version = "N/A"
 		}

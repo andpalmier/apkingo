@@ -20,6 +20,7 @@ type Config struct {
 	DirPath     string
 	JSONFile    string
 	Country     string
+	Locale      string
 	VTAPIKey    string
 	KAPIKey     string
 	VTUpload    bool
@@ -32,6 +33,7 @@ func Load() *Config {
 	flag.StringVar(&cfg.APKPath, "apk", "", "Path to APK or XAPK file")
 	flag.StringVar(&cfg.DirPath, "dir", "", "Analyze all APKs in a directory")
 	flag.StringVar(&cfg.Country, "country", constants.DefaultCountry, "Country code of the Play Store")
+	flag.StringVar(&cfg.Locale, "locale", "", "Locale for localized app name extraction (e.g., en, zh-CN)")
 	flag.StringVar(&cfg.VTAPIKey, "vtapi", "", "VirusTotal API key")
 	flag.StringVar(&cfg.KAPIKey, "kapi", "", "Koodous API key")
 	flag.BoolVar(&cfg.VTUpload, "vtupload", false, "Upload APK to VirusTotal after analysis")

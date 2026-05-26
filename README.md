@@ -10,12 +10,13 @@
   </p>
 </p>
 
-> **apkingo** is an APK analysis tool written in Go. It extracts information from Android applications, such as permissions, metadata, certificate details, and integrates with VirusTotal and Koodous for malware detection.
+> **apkingo** is an APK analysis tool written in Go. It extracts information from Android applications, such as permissions, metadata, certificate details, version code, supported CPU architectures, and integrates with VirusTotal and Koodous for malware detection.
 
 ## Features
 
 ### Core Analysis
-- **General Info**: Package name, version, main activity, SDK versions
+- **General Info**: Package name, version name, version code, main activity, SDK versions, supported CPU architectures
+- **Localized Names**: Extract app names in specific locales with the `-locale` flag (e.g., `-locale zh-CN`)
 - **Hashes**: MD5, SHA1, SHA256
 - **Permissions**: Complete list of requested permissions
 - **Metadata**: Application metadata
@@ -106,6 +107,24 @@ apkingo -dir <path_to_directory>
 apkingo -apk <path_to_apk> -vtapi <VT_KEY> -kapi <KOODOUS_KEY> -json report.json
 ```
 
+### Locale Examples
+
+Extract the app name in a specific language:
+
+```bash
+# Default (English or app default)
+apkingo -apk target.apk
+
+# Simplified Chinese
+apkingo -apk target.apk -locale zh-CN
+
+# Japanese
+apkingo -apk target.apk -locale ja
+
+# Combine with Play Store locale for fully localized analysis
+apkingo -apk target.apk -country cn -locale zh-CN
+```
+
 ### API Keys
 
 For enhanced analysis, you can provide API keys for VirusTotal and Koodous either via command-line flags or environment variables:
@@ -130,6 +149,7 @@ apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 | `-dir` | Analyze all APKs in a directory |
 | `-json` | Path to export analysis in JSON format |
 | `-country` | Country code of the Play Store (default: "us") |
+| `-locale` | Locale for localized app name extraction (e.g., `en`, `zh-CN`) |
 | `-vtapi` | VirusTotal API key (can also use `VT_API_KEY` env var) |
 | `-kapi` | Koodous API key (can also use `KOODOUS_API_KEY` env var) |
 | `-no-play-store` | Skip Play Store scraping for offline analysis |

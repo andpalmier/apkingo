@@ -13,7 +13,7 @@ func TestProcessAPK(t *testing.T) {
 	app := analyzer.AndroidApp{}
 
 	// Test with no API keys
-	err := app.ProcessAPK(apkPath, "us", "", "", false)
+	err := app.ProcessAPK(apkPath, "us", "", "", "", false)
 	if err != nil {
 		t.Fatalf("ProcessAPK failed: %v", err)
 	}
@@ -34,11 +34,27 @@ func TestProcessAPK(t *testing.T) {
 	if app.Certificate.Serial == "" {
 		t.Error("Expected certificate serial to be found")
 	}
+
+	// Verify version fields
+	if app.VersionName == "" {
+		t.Error("Expected VersionName to be non-empty")
+	}
+	if app.VersionCode == 0 {
+		t.Error("Expected VersionCode to be non-zero")
+	}
+	if app.VersionCode < 0 {
+		t.Errorf("Expected positive VersionCode, got %d", app.VersionCode)
+	}
+
+	// F-Droid is pure Java/Kotlin — no native libs expected
+	if app.Architectures == nil {
+		t.Error("Expected Architectures slice to be initialized (can be empty)")
+	}
 }
 
 func TestProcessAPK_FileNotFound(t *testing.T) {
 	app := analyzer.AndroidApp{}
-	err := app.ProcessAPK("nonexistent.apk", "us", "", "", false)
+	err := app.ProcessAPK("nonexistent.apk", "us", "", "", "", false)
 	if err == nil {
 		t.Error("Expected error for non-existent file, got nil")
 	}

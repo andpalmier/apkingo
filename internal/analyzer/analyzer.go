@@ -14,20 +14,24 @@ import (
 // AndroidApp represents information extracted from an APK file
 type AndroidApp struct {
 	Name          string               `json:"name"`
+	NameLocale    string               `json:"name-locale,omitempty"`  // localized name from -locale flag
+	Locale        string               `json:"locale,omitempty"`       // locale requested (e.g., "zh-CN")
 	PackageName   string               `json:"package-name"`
-	Version      string               `json:"version"`
-	MainActivity string               `json:"main-activity"`
-	MinimumSDK   int32                `json:"minimum-sdk"`
-	TargetSDK    int32                `json:"target-sdk"`
-	Hashes       Hashes              `json:"hashes"`
-	Permissions  []string             `json:"permissions"`
-	Metadata     []Metadata          `json:"metadata"`
-	Certificate  CertificateInfo     `json:"certificate"`
-	PlayStore    *PlayStoreInfo      `json:"playstore,omitempty"`
-	Koodous      *koodous.KoodousInfo `json:"koodous,omitempty"`
-	VirusTotal   *vt.VirusTotalInfo   `json:"virustotal,omitempty"`
-	NoPlayStore  bool                `json:"-"` // internal use only - skip Play Store
-	Errors       AnalysisErrors       `json:"-"` // internal use only
+	VersionName   string               `json:"version-name"`
+	VersionCode   int32                `json:"version-code"`
+	Architectures []string             `json:"architectures,omitempty"`
+	MainActivity  string               `json:"main-activity"`
+	MinimumSDK    int32                `json:"minimum-sdk"`
+	TargetSDK     int32                `json:"target-sdk"`
+	Hashes        Hashes               `json:"hashes"`
+	Permissions   []string             `json:"permissions"`
+	Metadata      []Metadata           `json:"metadata"`
+	Certificate   CertificateInfo      `json:"certificate"`
+	PlayStore     *PlayStoreInfo       `json:"playstore,omitempty"`
+	Koodous       *koodous.KoodousInfo `json:"koodous,omitempty"`
+	VirusTotal    *vt.VirusTotalInfo   `json:"virustotal,omitempty"`
+	NoPlayStore   bool                 `json:"-"` // internal use only - skip Play Store
+	Errors        AnalysisErrors       `json:"-"` // internal use only
 }
 
 // AnalysisErrors holds errors encountered during analysis
@@ -52,9 +56,11 @@ type Metadata struct {
 	Value string `json:"value,omitempty"`
 }
 
-// ProcessAPK orchestrates the APK analysis
-// noPlayStore when true, skips Play Store API calls for offline analysis
-func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string, noPlayStore bool) error {
+// ProcessAPK orchestrates the APK analysis.
+// country is the Play Store country code for localized store results.
+// locale is the language tag for localized app name extraction (e.g., "en", "zh-CN").
+// noPlayStore when true, skips Play Store API calls for offline analysis.
+func (app *AndroidApp) ProcessAPK(apkPath, country, locale, vtAPIKey, koodousAPI string, noPlayStore bool) error {
 	pkg, err := apk.OpenFile(apkPath)
 	if err != nil {
 		return fmt.Errorf("error loading APK: %s", err)
@@ -65,9 +71,11 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, vtAPIKey, koodousAPI string,
 		}
 	}()
 
-	if err = app.SetGeneralInfo(pkg); err != nil {
+	if err = app.SetGeneralInfo(pkg, locale); err != nil {
 		app.Errors.General = err
 	}
+
+	app.SetArchitectures(apkPath)
 
 	if err = app.SetHashes(apkPath); err != nil {
 		return fmt.Errorf("error setting hashes: %s", err)
