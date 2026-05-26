@@ -91,7 +91,11 @@ func (app *AndroidApp) SetArchitectures(apkPath string) {
 		utils.LogError("error scanning APK for native architectures", err)
 		return
 	}
-	defer r.Close()
+	defer func() {
+		if err := r.Close(); err != nil {
+			utils.LogError("error closing APK file after architecture scan", err)
+		}
+	}()
 
 	app.Architectures = make([]string, 0)
 	seen := make(map[string]bool)
