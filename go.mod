@@ -11,7 +11,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/n0madic/google-play-scraper v0.0.0-20231014122808-52dbf3ade79b
 	github.com/parnurzeal/gorequest v0.3.0
-	github.com/shogo82148/androidbinary v1.0.5
+	github.com/shogo82148/androidbinary v1.0.6
 )
 
 require (
