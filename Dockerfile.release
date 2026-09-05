@@ -1,4 +1,6 @@
-FROM alpine:latest
+# The base image is pinned so a rebuild of an old tag produces the same image,
+# and so Dependabot can propose the upgrade rather than it arriving unannounced.
+FROM alpine:3.24
 
 # Install CA certificates for HTTPS requests (VT/Koodous)
 RUN apk --no-cache add ca-certificates

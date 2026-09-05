@@ -78,12 +78,29 @@ changelog:
       - '^docs:'
       - '^test:'
 
+# One "docker buildx build" across both platforms, pushed as a single
+# multi-platform image. A client pulling the tag gets the manifest for its own
+# architecture.
 dockers_v2:
-  - images:
+  - id: apkingo
+    images:
       - "ghcr.io/andpalmier/apkingo"
     tags:
-      - "{{ .Tag }}"
-      - "latest"
+      # No "v" prefix, so the image tag matches the release version the way
+      # every other tool in the tap publishes it.
+      - "{{ .Version }}"
+      # "latest" must never move onto a prerelease. An empty tag is ignored.
+      - "{{ if not .Prerelease }}latest{{ end }}"
     dockerfile: Dockerfile.release
     platforms:
       - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: "{{ .ProjectName }}"
+      org.opencontainers.image.description: "Tool to extract info from APK files"
+      org.opencontainers.image.version: "{{ .Version }}"
+      # GitHub reads this label to attach the published package to the
+      # repository, which is what puts the package under the repo's Packages
+      # tab and lets its visibility be managed from there.
+      org.opencontainers.image.source: "https://github.com/andpalmier/apkingo"
+      org.opencontainers.image.licenses: "Apache-2.0"
