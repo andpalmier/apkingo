@@ -3,6 +3,13 @@ before:
   hooks:
     - go mod tidy
 builds:
+  # -s -w drop the symbol table and DWARF data, which the binary does not need
+  # and which made every published archive larger than it had to be.
+  #
+  # The -X paths must match the variable names in internal/version. The linker
+  # discards a -X naming a symbol that does not exist without reporting it, so
+  # a typo here would leave every release reporting "dev". CI runs the built
+  # binary and checks.
   - id: default
     env:
       - CGO_ENABLED=0
@@ -10,12 +17,22 @@ builds:
       - linux
       - darwin
     main: ./cmd/apkingo
+    ldflags:
+      - -s -w
+      - -X github.com/andpalmier/apkingo/internal/version.Version={{.Version}}
+      - -X github.com/andpalmier/apkingo/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/andpalmier/apkingo/internal/version.Date={{.Date}}
   - id: windows
     env:
       - CGO_ENABLED=0
     goos:
       - windows
     main: ./cmd/apkingo
+    ldflags:
+      - -s -w
+      - -X github.com/andpalmier/apkingo/internal/version.Version={{.Version}}
+      - -X github.com/andpalmier/apkingo/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/andpalmier/apkingo/internal/version.Date={{.Date}}
 
 archives:
   - id: nix

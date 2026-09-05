@@ -16,3 +16,48 @@ jobs:
           cache: true
       - name: Test
         run: go test -v ./...
+
+  # The release build stamps the version with -X. The linker discards a -X
+  # naming a symbol that does not exist without reporting it and without
+  # failing, so a wrong path in .goreleaser.yaml would leave every published
+  # binary reporting "dev". Building the real release configuration and running
+  # the result is the only thing that catches that.
+  version-stamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: true
+      - name: Build a snapshot with the release configuration
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: build --snapshot --clean
+      - name: Assert the version was stamped
+        run: |
+          bin=$(find dist -type f -name apkingo -perm -u+x | head -n1)
+          if [ -z "$bin" ]; then
+            echo "::error::no apkingo binary found under dist/"
+            exit 1
+          fi
+          out=$("$bin" -version)
+          printf '%s\n' "$out"
+          if printf '%s\n' "$out" | grep -q 'version dev'; then
+            echo "::error::version not stamped; check the -X symbol paths in .goreleaser.yaml"
+            exit 1
+          fi
+          # apkingo omits these lines entirely when they hold their unstamped
+          # defaults, so their absence is the signal, not the word "unknown".
+          if ! printf '%s\n' "$out" | grep -q 'commit: '; then
+            echo "::error::commit not stamped; check the -X symbol paths"
+            exit 1
+          fi
+          if ! printf '%s\n' "$out" | grep -q 'built: '; then
+            echo "::error::build date not stamped; check the -X symbol paths"
+            exit 1
+          fi

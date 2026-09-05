@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/andpalmier/apkingo/internal/constants"
+	"github.com/andpalmier/apkingo/internal/version"
 )
 
 const (
@@ -38,7 +39,15 @@ func Load() *Config {
 	flag.StringVar(&cfg.KAPIKey, "kapi", "", "Koodous API key")
 	flag.BoolVar(&cfg.VTUpload, "vtupload", false, "Upload APK to VirusTotal after analysis")
 	flag.BoolVar(&cfg.NoPlayStore, "no-play-store", false, "Skip Play Store API calls for offline analysis")
+	showVersion := flag.Bool("version", false, "Print version information")
 	flag.Parse()
+
+	// Answered before the input checks below, so asking for the version does
+	// not also require an APK.
+	if *showVersion {
+		fmt.Println(version.String())
+		os.Exit(0)
+	}
 
 	// Validate input options
 	if cfg.APKPath != "" && cfg.DirPath != "" {

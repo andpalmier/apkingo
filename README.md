@@ -155,6 +155,7 @@ apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 | `-kapi` | Koodous API key (can also use `KOODOUS_API_KEY` env var) |
 | `-no-play-store` | Skip Play Store scraping for offline analysis |
 | `-vtupload` | Upload the APK to VirusTotal after analysis (interactive prompt) |
+| `-version` | Print the version, commit and build date, then exit |
 
 ### Example
 
