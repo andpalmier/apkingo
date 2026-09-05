@@ -40,9 +40,9 @@ jobs:
           args: build --snapshot --clean
       - name: Assert the version was stamped
         run: |
-          bin=$(find dist -type f -name apkingo -perm -u+x | head -n1)
+          bin=$(find dist -type f -path '*linux_amd64*' -name apkingo -perm -u+x | head -n1)
           if [ -z "$bin" ]; then
-            echo "::error::no apkingo binary found under dist/"
+            echo "::error::no linux/amd64 apkingo binary found under dist/"
             exit 1
           fi
           out=$("$bin" -version)
