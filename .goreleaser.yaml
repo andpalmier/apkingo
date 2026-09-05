@@ -52,6 +52,20 @@ homebrew_casks:
     description: "Tool to extract info from APK files"
     license: "Apache-2.0"
     directory: Casks
+    # Homebrew quarantines what a cask downloads, and these binaries are neither
+    # signed nor notarized, so macOS refuses to run them with "apkingo is
+    # damaged and cannot be opened". Formulae did not have this problem, so this
+    # is required by the move to casks rather than optional.
+    #
+    # Clearing the quarantine attribute is a bypass: Apple may withdraw it, and
+    # signing plus notarization is the durable answer. That needs an Apple
+    # Developer account, so it is a separate decision.
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/apkingo"]
+          end
 
 checksum:
   name_template: 'checksums.txt'

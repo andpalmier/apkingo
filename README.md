@@ -67,9 +67,10 @@ go install github.com/andpalmier/apkingo/cmd/apkingo@latest
 ### From Homebrew
 
 ```bash
-brew tap andpalmier/tap
-brew install apkingo
+brew install --cask andpalmier/tap/apkingo
 ```
+
+Homebrew casks are macOS only. On Linux, use `go install` or a pre-built binary.
 
 ## Usage
 
