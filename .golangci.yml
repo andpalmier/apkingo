@@ -1,0 +1,23 @@
+# Go Report Card was retired and pointed its users at golangci-lint, which is
+# now the quality signal this repository reports. CI runs exactly this file, so
+# a local run and a CI run agree.
+version: "2"
+
+linters:
+  # These sit on top of the defaults: errcheck, govet, ineffassign, staticcheck
+  # and unused.
+  enable:
+    # An HTTP response body that is never closed holds its connection open.
+    - bodyclose
+    # %v on an error drops the wrapping chain, and comparing errors with ==
+    # breaks the moment someone wraps one, so errors.Is and errors.As stop
+    # seeing the cause.
+    - errorlint
+    # Catches genuine typos. Deliberately without a locale: setting one flags
+    # British spellings as errors, which is a house style choice, not a defect.
+    - misspell
+    # A conversion that does nothing usually means the type changed underneath.
+    - unconvert
+    # The per-iteration loop variable landed in Go 1.22, so the old defensive
+    # copy is now noise.
+    - copyloopvar

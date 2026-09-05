@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/andpalmier/apkingo/internal/constants"
+	"github.com/andpalmier/apkingo/v2/internal/constants"
 	"github.com/fatih/color"
 )
 

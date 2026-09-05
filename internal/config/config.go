@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andpalmier/apkingo/internal/constants"
-	"github.com/andpalmier/apkingo/internal/version"
+	"github.com/andpalmier/apkingo/v2/internal/constants"
+	"github.com/andpalmier/apkingo/v2/internal/version"
 )
 
 const (

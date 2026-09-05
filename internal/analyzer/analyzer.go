@@ -6,8 +6,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/andpalmier/apkingo/internal/koodous"
-	"github.com/andpalmier/apkingo/internal/vt"
+	"github.com/andpalmier/apkingo/v2/internal/koodous"
+	"github.com/andpalmier/apkingo/v2/internal/vt"
 	"github.com/shogo82148/androidbinary/apk"
 )
 
@@ -63,7 +63,7 @@ type Metadata struct {
 func (app *AndroidApp) ProcessAPK(apkPath, country, locale, vtAPIKey, koodousAPI string, noPlayStore bool) error {
 	pkg, err := apk.OpenFile(apkPath)
 	if err != nil {
-		return fmt.Errorf("error loading APK: %s", err)
+		return fmt.Errorf("error loading APK: %w", err)
 	}
 	defer func() {
 		if err := pkg.Close(); err != nil {
@@ -78,7 +78,7 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, locale, vtAPIKey, koodousAPI
 	app.SetArchitectures(apkPath)
 
 	if err = app.SetHashes(apkPath); err != nil {
-		return fmt.Errorf("error setting hashes: %s", err)
+		return fmt.Errorf("error setting hashes: %w", err)
 	}
 
 	if err = app.SetCertInfo(apkPath); err != nil {

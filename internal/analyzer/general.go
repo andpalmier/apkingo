@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/andpalmier/apkingo/internal/utils"
+	"github.com/andpalmier/apkingo/v2/internal/utils"
 	"github.com/shogo82148/androidbinary"
 	"github.com/shogo82148/androidbinary/apk"
 )

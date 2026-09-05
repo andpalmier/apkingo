@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/VirusTotal/vt-go"
-	"github.com/andpalmier/apkingo/internal/constants"
-	"github.com/andpalmier/apkingo/internal/utils"
+	"github.com/andpalmier/apkingo/v2/internal/constants"
+	"github.com/andpalmier/apkingo/v2/internal/utils"
 )
 
 // newClient creates a VirusTotal client with custom HTTP timeout.

@@ -5,7 +5,7 @@ import (
 	"html"
 	"time"
 
-	"github.com/andpalmier/apkingo/internal/utils"
+	"github.com/andpalmier/apkingo/v2/internal/utils"
 	playapp "github.com/n0madic/google-play-scraper/pkg/app"
 )
 

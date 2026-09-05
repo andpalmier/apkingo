@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andpalmier/apkingo/internal/constants"
-	"github.com/andpalmier/apkingo/internal/utils"
+	"github.com/andpalmier/apkingo/v2/internal/constants"
+	"github.com/andpalmier/apkingo/v2/internal/utils"
 	"github.com/parnurzeal/gorequest"
 )
 
@@ -72,7 +72,7 @@ func GetInfo(kapi, hash string) (*KoodousInfo, error) {
 	var koodousResult KoodousInfo
 	if err := json.Unmarshal([]byte(body), &koodousResult); err != nil {
 		utils.LogError("error parsing Koodous result", err)
-		return nil, fmt.Errorf("error parsing Koodous result: %s", err)
+		return nil, fmt.Errorf("error parsing Koodous result: %w", err)
 	}
 
 	return &KoodousInfo{

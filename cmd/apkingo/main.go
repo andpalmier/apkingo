@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/andpalmier/apkingo/internal/analyzer"
-	"github.com/andpalmier/apkingo/internal/config"
-	"github.com/andpalmier/apkingo/internal/report"
-	"github.com/andpalmier/apkingo/internal/ui"
-	"github.com/andpalmier/apkingo/internal/vt"
+	"github.com/andpalmier/apkingo/v2/internal/analyzer"
+	"github.com/andpalmier/apkingo/v2/internal/config"
+	"github.com/andpalmier/apkingo/v2/internal/report"
+	"github.com/andpalmier/apkingo/v2/internal/ui"
+	"github.com/andpalmier/apkingo/v2/internal/vt"
 )
 
 func main() {

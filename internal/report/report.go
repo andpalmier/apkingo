@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/andpalmier/apkingo/internal/analyzer"
-	"github.com/andpalmier/apkingo/internal/constants"
-	"github.com/andpalmier/apkingo/internal/ui"
-	"github.com/andpalmier/apkingo/internal/utils"
+	"github.com/andpalmier/apkingo/v2/internal/analyzer"
+	"github.com/andpalmier/apkingo/v2/internal/constants"
+	"github.com/andpalmier/apkingo/v2/internal/ui"
+	"github.com/andpalmier/apkingo/v2/internal/utils"
 	"github.com/fatih/color"
 )
 

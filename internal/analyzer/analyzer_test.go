@@ -3,7 +3,7 @@ package analyzer_test
 import (
 	"testing"
 
-	"github.com/andpalmier/apkingo/internal/analyzer"
+	"github.com/andpalmier/apkingo/v2/internal/analyzer"
 )
 
 func TestProcessAPK(t *testing.T) {

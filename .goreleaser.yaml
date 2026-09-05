@@ -19,9 +19,9 @@ builds:
     main: ./cmd/apkingo
     ldflags:
       - -s -w
-      - -X github.com/andpalmier/apkingo/internal/version.Version={{.Version}}
-      - -X github.com/andpalmier/apkingo/internal/version.Commit={{.ShortCommit}}
-      - -X github.com/andpalmier/apkingo/internal/version.Date={{.Date}}
+      - -X github.com/andpalmier/apkingo/v2/internal/version.Version={{.Version}}
+      - -X github.com/andpalmier/apkingo/v2/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/andpalmier/apkingo/v2/internal/version.Date={{.Date}}
   - id: windows
     env:
       - CGO_ENABLED=0
@@ -30,9 +30,9 @@ builds:
     main: ./cmd/apkingo
     ldflags:
       - -s -w
-      - -X github.com/andpalmier/apkingo/internal/version.Version={{.Version}}
-      - -X github.com/andpalmier/apkingo/internal/version.Commit={{.ShortCommit}}
-      - -X github.com/andpalmier/apkingo/internal/version.Date={{.Date}}
+      - -X github.com/andpalmier/apkingo/v2/internal/version.Version={{.Version}}
+      - -X github.com/andpalmier/apkingo/v2/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/andpalmier/apkingo/v2/internal/version.Date={{.Date}}
 
 archives:
   - id: nix

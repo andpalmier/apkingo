@@ -5,7 +5,7 @@
   <p align="center">
     <a href="https://github.com/andpalmier/apkingo/blob/main/LICENSE"><img alt="Software License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
     <a href="https://godoc.org/github.com/andpalmier/apkingo"><img alt="GoDoc Card" src="https://godoc.org/github.com/andpalmier/apkingo?status.svg"></a>
-    <a href="https://goreportcard.com/report/github.com/andpalmier/apkingo"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/andpalmier/apkingo?style=flat-square"></a>
+    <a href="https://github.com/andpalmier/apkingo/actions/workflows/linter.yaml"><img alt="golangci-lint" src="https://github.com/andpalmier/apkingo/actions/workflows/linter.yaml/badge.svg"></a>
     <a href="https://x.com/intent/follow?screen_name=andpalmier"><img src="https://img.shields.io/twitter/follow/andpalmier?style=social&logo=x" alt="follow on X"></a>
   </p>
 </p>
@@ -14,54 +14,44 @@
 
 ## Features
 
-### Core Analysis
-- **General Info**: Package name, version name, version code, main activity, SDK versions, supported CPU architectures
-- **Localized Names**: Extract app names in specific locales with the `-locale` flag (e.g., `-locale zh-CN`)
-- **Hashes**: MD5, SHA1, SHA256
-- **Permissions**: Complete list of requested permissions
-- **Metadata**: Application metadata
-- **Certificate**: Serial, thumbprint, validity, issuer, subject
+From the APK itself, apkingo reads the package name, version name and version
+code, main activity, SDK versions and supported CPU architectures. It lists
+every requested permission and all application metadata, computes MD5, SHA1 and
+SHA256, and reports the signing certificate's serial, thumbprint, validity,
+issuer and subject. Pass `-locale` to pull the app name in a specific language,
+such as `-locale zh-CN`.
 
-### File Format Support
-- **XAPK/APKS Support**: Automatically detects and extracts APKs from Android App Bundle archives
-- **Directory Analysis**: Batch analyze multiple APKs in a directory with the `-dir` flag
+It reads XAPK and APKS archives too, detecting and extracting the APKs inside,
+and `-dir` analyzes every APK in a directory in one run.
 
-### Offline Analysis
-- **No Play Store Required**: Use the `-no-play-store` flag to analyze APKs without internet access (useful in restricted network environments, air-gapped systems, or regions with limited connectivity)
+By default it also scrapes the Google Play Store listing. `-no-play-store`
+skips that, which is what you want on an air-gapped machine, behind a
+restrictive network, or anywhere Play is unreachable.
 
-### External Intelligence
-- **Play Store Integration**: Scrapes application info from Google Play Store
-- **VirusTotal Analysis** (requires VirusTotal API key):
-  - Malware detection stats with highlighted red flags
-  - Popular threat classification (e.g., "trojan.pegasus/chrysaor")
-  - File reputation score
-  - Community detection (Sigma, YARA, IDS)
-  - File tags and characteristics
-- **VirusTotal Androguard** (automatic with VirusTotal API key):
-  - Complete APK structure analysis
-  - Activities, Services, Providers, Receivers
-  - Libraries and SDK versions
-  - Dangerous permissions highlighted in red
-- **Koodous Integration** (requires Koodous API key):
-  - Malware detection status
-  - Community rating and trust score
-  - Positive/Negative votes
-  - Repository information when available
+With a VirusTotal API key it adds detection statistics with red flags
+highlighted, the popular threat classification such as
+`trojan.pegasus/chrysaor`, the file reputation score, community detections from
+Sigma, YARA and IDS rules, and the file's tags. The same key pulls VirusTotal's
+Androguard analysis: the full APK structure, its activities, services,
+providers and receivers, its libraries and SDK versions, with dangerous
+permissions highlighted. A Koodous API key adds that service's detection
+status, community rating and trust score, vote counts, and the linked
+repository when one exists.
 
-### Output & Export
-- **Enhanced Terminal Output**: Colored results with **bold red warnings** for malware indicators
-- **JSON Export**: Pretty-printed analysis export including all VirusTotal/Koodous data
+Results print to the terminal in colour, with malware indicators in bold red.
+`-json` writes the whole analysis, VirusTotal and Koodous data included, as
+pretty-printed JSON.
 
 ## Installation
 
-### From GitHub Releases
+### From GitHub releases
 
 Download the pre-compiled binary for your system from the [Releases](https://github.com/andpalmier/apkingo/releases) page.
 
-### From Source
+### From source
 
 ```bash
-go install github.com/andpalmier/apkingo/cmd/apkingo@latest
+go install github.com/andpalmier/apkingo/v2/cmd/apkingo@latest
 ```
 
 ### From Homebrew
@@ -74,70 +64,52 @@ Homebrew casks are macOS only. On Linux, use `go install` or a pre-built binary.
 
 ## Usage
 
-### Using Docker (Recommended)
+### With Docker
 
-You can run **apkingo** directly using Docker without installing Go or downloading binaries.
+Running the published image needs neither Go nor a downloaded binary. Mount the
+directory holding the APK:
 
 ```bash
-# Analyze an APK (mount the directory containing the APK)
+# Analyze an APK
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk
 
 # Analyze an XAPK file
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/app.xapk
 
-# Analyze all APKs in a directory
+# Analyze every APK in a directory
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -dir /mnt
 
-# Analyze and export JSON report
+# Analyze and export a JSON report
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk -json /mnt/report.json
 ```
 
-### CLI Usage
+### From the command line
 
 ```bash
-# Analyze a single APK
-apkingo -apk <path_to_apk>
+apkingo -apk <path_to_apk>            # a single APK
+apkingo -apk <path_to_xapk>           # an XAPK or APKS archive
+apkingo -dir <path_to_directory>      # every APK in a directory
 
-# Analyze an XAPK/APKS file
-apkingo -apk <path_to_xapk>
-
-# Analyze all APKs in a directory
-apkingo -dir <path_to_directory>
-
-# Analyze with API keys and export JSON
+# With API keys, exporting JSON
 apkingo -apk <path_to_apk> -vtapi <VT_KEY> -kapi <KOODOUS_KEY> -json report.json
+
+# The app name in a specific language, with a matching Play Store country
+apkingo -apk target.apk -locale zh-CN -country cn
 ```
 
-### Locale Examples
+### API keys
 
-Extract the app name in a specific language:
+VirusTotal and Koodous keys can come from the environment, which keeps them out
+of your shell history:
 
-```bash
-# Default (English or app default)
-apkingo -apk target.apk
-
-# Simplified Chinese
-apkingo -apk target.apk -locale zh-CN
-
-# Japanese
-apkingo -apk target.apk -locale ja
-
-# Combine with Play Store locale for fully localized analysis
-apkingo -apk target.apk -country cn -locale zh-CN
-```
-
-### API Keys
-
-For enhanced analysis, you can provide API keys for VirusTotal and Koodous either via command-line flags or environment variables:
-
-**Environment Variables (Recommended):**
 ```bash
 export VT_API_KEY="your_virustotal_api_key"
 export KOODOUS_API_KEY="your_koodous_api_key"
 apkingo -apk <path_to_apk>
 ```
 
-**Command-Line Flags:**
+They can also be passed as flags:
+
 ```bash
 apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 ```
@@ -157,12 +129,6 @@ apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 | `-vtupload` | Upload the APK to VirusTotal after analysis (interactive prompt) |
 | `-version` | Print the version, commit and build date, then exit |
 
-### Example
-
-```bash
-apkingo -apk <path_to_apk>
-```
-
 ## Screenshot
 
 apkingo analyzing an Android malware:
@@ -170,7 +136,7 @@ apkingo analyzing an Android malware:
   <img alt="apkingo" src="https://github.com/andpalmier/apkingo/blob/main/img/screen_malware.png?raw=true" />
 </p>
 
-## 3rd party libraries and API documentation 
+## Third party libraries and API documentation
 
 - shogo82148/androidbinary: [GitHub repo](https://github.com/shogo82148/androidbinary) and [Go reference](https://pkg.go.dev/github.com/shogo82148/androidbinary)
 - avast/apkverifier: [GitHub repo](https://github.com/avast/apkverifier) and [Go reference](https://pkg.go.dev/github.com/avast/apkverifier)
