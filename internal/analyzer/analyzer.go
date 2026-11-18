@@ -4,39 +4,47 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
-	"github.com/andpalmier/apkingo/v2/internal/koodous"
-	"github.com/andpalmier/apkingo/v2/internal/vt"
+	"github.com/andpalmier/apkingo/v3/internal/koodous"
+	"github.com/andpalmier/apkingo/v3/internal/vt"
 	"github.com/shogo82148/androidbinary/apk"
 )
 
 // AndroidApp represents information extracted from an APK file
 type AndroidApp struct {
-	Name          string               `json:"name"`
-	NameLocale    string               `json:"name-locale,omitempty"`  // localized name from -locale flag
-	Locale        string               `json:"locale,omitempty"`       // locale requested (e.g., "zh-CN")
-	PackageName   string               `json:"package-name"`
-	VersionName   string               `json:"version-name"`
-	VersionCode   int32                `json:"version-code"`
-	Architectures []string             `json:"architectures,omitempty"`
-	MainActivity  string               `json:"main-activity"`
-	MinimumSDK    int32                `json:"minimum-sdk"`
-	TargetSDK     int32                `json:"target-sdk"`
-	Hashes        Hashes               `json:"hashes"`
-	Permissions   []string             `json:"permissions"`
-	Metadata      []Metadata           `json:"metadata"`
-	Certificate   CertificateInfo      `json:"certificate"`
-	PlayStore     *PlayStoreInfo       `json:"playstore,omitempty"`
-	Koodous       *koodous.KoodousInfo `json:"koodous,omitempty"`
-	VirusTotal    *vt.VirusTotalInfo   `json:"virustotal,omitempty"`
-	NoPlayStore   bool                 `json:"-"` // internal use only - skip Play Store
-	Errors        AnalysisErrors       `json:"-"` // internal use only
+	Name                  string               `json:"name"`
+	NameLocale            string               `json:"name-locale,omitempty"` // localized name from -locale flag
+	Locale                string               `json:"locale,omitempty"`      // locale requested (e.g., "zh-CN")
+	PackageName           string               `json:"package-name"`
+	VersionName           string               `json:"version-name"`
+	VersionCode           int32                `json:"version-code"`
+	Architectures         []string             `json:"architectures,omitempty"`
+	MainActivity          string               `json:"main-activity"`
+	MinimumSDK            int32                `json:"minimum-sdk"`
+	TargetSDK             int32                `json:"target-sdk"`
+	Hashes                Hashes               `json:"hashes"`
+	Permissions           []string             `json:"permissions"`
+	PermissionClasses     map[string]string    `json:"permission-classes,omitempty"`
+	Metadata              []Metadata           `json:"metadata"`
+	Debuggable            *bool                `json:"debuggable,omitempty"`
+	AllowBackup           *bool                `json:"allow-backup,omitempty"`
+	TestOnly              *bool                `json:"test-only,omitempty"`
+	UsesCleartextTraffic  *bool                `json:"uses-cleartext-traffic,omitempty"`
+	NetworkSecurityConfig string               `json:"network-security-config,omitempty"`
+	Certificate           CertificateInfo      `json:"certificate"`
+	PlayStore             *PlayStoreInfo       `json:"playstore,omitempty"`
+	Koodous               *koodous.KoodousInfo `json:"koodous,omitempty"`
+	VirusTotal            *vt.VirusTotalInfo   `json:"virustotal,omitempty"`
+	NoPlayStore           bool                 `json:"-"` // internal use only - skip Play Store
+	Errors                AnalysisErrors       `json:"-"` // internal use only
 }
 
 // AnalysisErrors holds errors encountered during analysis
 type AnalysisErrors struct {
 	General   error
+	Security  error
 	Cert      error
 	PlayStore error
 	Koodous   error
@@ -73,6 +81,10 @@ func (app *AndroidApp) ProcessAPK(apkPath, country, locale, vtAPIKey, koodousAPI
 
 	if err = app.SetGeneralInfo(pkg, locale); err != nil {
 		app.Errors.General = err
+	}
+
+	if err = app.SetSecurityFlags(apkPath); err != nil {
+		app.Errors.Security = err
 	}
 
 	app.SetArchitectures(apkPath)
@@ -143,15 +155,18 @@ func (app *AndroidApp) ExportJSON(jsonpath string) error {
 		return fmt.Errorf("json export path cannot be empty")
 	}
 
-	// Create file with secure permissions (0600 - owner read/write only)
-	file, err := os.OpenFile(jsonpath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	dir := filepath.Dir(jsonpath)
+	file, err := os.CreateTemp(dir, "."+filepath.Base(jsonpath)+".tmp-*")
 	if err != nil {
-		return fmt.Errorf("failed to create JSON file %q: %w", jsonpath, err)
+		return fmt.Errorf("failed to create temporary JSON file for %q: %w", jsonpath, err)
 	}
+	tmpPath := file.Name()
+	closed := false
 	defer func() {
-		if closeErr := file.Close(); closeErr != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to close JSON file: %v\n", closeErr)
+		if !closed {
+			_ = file.Close()
 		}
+		_ = os.Remove(tmpPath)
 	}()
 
 	// Use json.Encoder for pretty-printed output with 2-space indent
@@ -160,6 +175,17 @@ func (app *AndroidApp) ExportJSON(jsonpath string) error {
 
 	if err := encoder.Encode(app); err != nil {
 		return fmt.Errorf("failed to encode JSON to %q: %w", jsonpath, err)
+	}
+	if err := file.Sync(); err != nil {
+		return fmt.Errorf("failed to sync JSON file %q: %w", jsonpath, err)
+	}
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("failed to close JSON file %q: %w", jsonpath, err)
+	}
+	closed = true
+
+	if err := os.Rename(tmpPath, jsonpath); err != nil {
+		return fmt.Errorf("failed to replace JSON file %q: %w", jsonpath, err)
 	}
 
 	return nil

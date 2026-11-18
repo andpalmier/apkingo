@@ -3,12 +3,15 @@
 FROM alpine:3.24
 
 # Install CA certificates for HTTPS requests (VT/Koodous)
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates \
+    && addgroup -S -g 10001 apkingo \
+    && adduser -S -D -H -u 10001 -G apkingo apkingo
 
 WORKDIR /mnt/
 # Copy the binary built by GoReleaser
 ARG TARGETPLATFORM
-COPY $TARGETPLATFORM/apkingo /usr/local/bin/apkingo
+COPY --chown=apkingo:apkingo $TARGETPLATFORM/apkingo /usr/local/bin/apkingo
+USER apkingo
 
 # Set entrypoint
 ENTRYPOINT ["apkingo"]

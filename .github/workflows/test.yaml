@@ -4,18 +4,41 @@ on:
     branches:
       - main
   pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          go-version: stable
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: "1.26"
           cache: true
       - name: Test
         run: go test -v ./...
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Build image
+        run: docker buildx build --load --platform linux/amd64 -t apkingo:test .
+      - name: Smoke test image
+        run: |
+          docker run --rm apkingo:test -version
+          if docker run --rm --entrypoint id apkingo:test | grep -q 'uid=0'; then
+            echo "::error::container runs as root"
+            exit 1
+          fi
 
   # The release build stamps the version with -X. The linker discards a -X
   # naming a symbol that does not exist without reporting it and without
@@ -25,19 +48,20 @@ jobs:
   version-stamp:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v7
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: stable
+          go-version: "1.26"
           cache: true
       - name: Build a snapshot with the release configuration
-        uses: goreleaser/goreleaser-action@v7
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7
         with:
           distribution: goreleaser
-          version: "~> v2"
-          args: build --snapshot --clean
+          version: v2.20.2
+          args: build --snapshot --clean --single-target --id default
       - name: Assert the version was stamped
         run: |
           bin=$(find dist -type f -path '*linux_amd64*' -name apkingo -perm -u+x | head -n1)

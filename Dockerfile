@@ -1,25 +1,25 @@
-FROM --platform=$TARGETPLATFORM golang:alpine as builder
-
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
 COPY ./go.mod /app/go.mod
 COPY ./go.sum /app/go.sum
-RUN go mod tidy
+RUN go mod download
 
 COPY ./ /app/
 # Build static binary with stripped debug info
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o apkingo ./cmd/apkingo/
 
-FROM alpine:latest
+FROM alpine:3.24
 
 # Install CA certificates for HTTPS requests (VT/Koodous)
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates \
+    && addgroup -S -g 10001 apkingo \
+    && adduser -S -D -H -u 10001 -G apkingo apkingo
 
 WORKDIR /mnt/
-COPY --from=builder /app/apkingo /usr/local/bin/apkingo
+COPY --from=builder --chown=apkingo:apkingo /app/apkingo /usr/local/bin/apkingo
+USER apkingo
 
 # Set entrypoint
 ENTRYPOINT ["apkingo"]

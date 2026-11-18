@@ -3,7 +3,7 @@ package analyzer_test
 import (
 	"testing"
 
-	"github.com/andpalmier/apkingo/v2/internal/analyzer"
+	"github.com/andpalmier/apkingo/v3/internal/analyzer"
 )
 
 func TestProcessAPK(t *testing.T) {
@@ -13,7 +13,7 @@ func TestProcessAPK(t *testing.T) {
 	app := analyzer.AndroidApp{}
 
 	// Test with no API keys
-	err := app.ProcessAPK(apkPath, "us", "", "", "", false)
+	err := app.ProcessAPK(apkPath, "us", "", "", "", true)
 	if err != nil {
 		t.Fatalf("ProcessAPK failed: %v", err)
 	}
@@ -34,6 +34,18 @@ func TestProcessAPK(t *testing.T) {
 	if app.Certificate.Serial == "" {
 		t.Error("Expected certificate serial to be found")
 	}
+	if !app.Certificate.Verified {
+		t.Errorf("Expected certificate to verify, got error: %s", app.Certificate.VerificationError)
+	}
+	if app.Certificate.SigningScheme != "v3" {
+		t.Errorf("Expected v3 signing scheme, got %s", app.Certificate.SigningScheme)
+	}
+	if app.Certificate.SignerCount != 1 {
+		t.Errorf("Expected one signer, got %d", app.Certificate.SignerCount)
+	}
+	if app.Certificate.Sha256 == "" {
+		t.Error("Expected certificate SHA256 to be found")
+	}
 
 	// Verify version fields
 	if app.VersionName == "" {
@@ -50,6 +62,55 @@ func TestProcessAPK(t *testing.T) {
 	if app.Architectures == nil {
 		t.Error("Expected Architectures slice to be initialized (can be empty)")
 	}
+}
+
+func TestSetSecurityFlags(t *testing.T) {
+	tests := []struct {
+		name                 string
+		apkPath              string
+		wantAllowBackup      bool
+		wantCleartext        *bool
+		wantNetworkConfigSet bool
+	}{
+		{
+			name:                 "F-Droid",
+			apkPath:              "../../test/F-Droid.apk",
+			wantAllowBackup:      true,
+			wantNetworkConfigSet: true,
+		},
+		{
+			name:            "Snapseed",
+			apkPath:         "../../test/snapseed.apk",
+			wantAllowBackup: true,
+			wantCleartext:   boolPtr(false),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := analyzer.AndroidApp{}
+			if err := app.SetSecurityFlags(tt.apkPath); err != nil {
+				t.Fatalf("SetSecurityFlags failed: %v", err)
+			}
+			if app.AllowBackup == nil || *app.AllowBackup != tt.wantAllowBackup {
+				t.Errorf("AllowBackup = %v, want %t", app.AllowBackup, tt.wantAllowBackup)
+			}
+			if tt.wantCleartext == nil {
+				if app.UsesCleartextTraffic != nil {
+					t.Errorf("UsesCleartextTraffic = %v, want not set", *app.UsesCleartextTraffic)
+				}
+			} else if app.UsesCleartextTraffic == nil || *app.UsesCleartextTraffic != *tt.wantCleartext {
+				t.Errorf("UsesCleartextTraffic = %v, want %t", app.UsesCleartextTraffic, *tt.wantCleartext)
+			}
+			if got := app.NetworkSecurityConfig != ""; got != tt.wantNetworkConfigSet {
+				t.Errorf("NetworkSecurityConfig set = %t, want %t", got, tt.wantNetworkConfigSet)
+			}
+		})
+	}
+}
+
+func boolPtr(v bool) *bool {
+	return &v
 }
 
 func TestProcessAPK_FileNotFound(t *testing.T) {

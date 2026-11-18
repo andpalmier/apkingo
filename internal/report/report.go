@@ -3,12 +3,13 @@ package report
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
-	"github.com/andpalmier/apkingo/v2/internal/analyzer"
-	"github.com/andpalmier/apkingo/v2/internal/constants"
-	"github.com/andpalmier/apkingo/v2/internal/ui"
-	"github.com/andpalmier/apkingo/v2/internal/utils"
+	"github.com/andpalmier/apkingo/v3/internal/analyzer"
+	"github.com/andpalmier/apkingo/v3/internal/constants"
+	"github.com/andpalmier/apkingo/v3/internal/ui"
+	"github.com/andpalmier/apkingo/v3/internal/utils"
 	"github.com/fatih/color"
 )
 
@@ -33,12 +34,20 @@ func (r *Reporter) PrintGeneralInfo(app *analyzer.AndroidApp) {
 
 	minSDK := "not found"
 	if app.MinimumSDK != 0 {
-		minSDK = fmt.Sprintf("%d (%s)", app.MinimumSDK, utils.AndroidName[int(app.MinimumSDK)])
+		name := utils.AndroidName[int(app.MinimumSDK)]
+		if name == "" {
+			name = "unknown Android version"
+		}
+		minSDK = fmt.Sprintf("%d (%s)", app.MinimumSDK, name)
 	}
 
 	targetSDK := "not found"
 	if app.TargetSDK != 0 {
-		targetSDK = fmt.Sprintf("%d (%s)", app.TargetSDK, utils.AndroidName[int(app.TargetSDK)])
+		name := utils.AndroidName[int(app.TargetSDK)]
+		if name == "" {
+			name = "unknown Android version"
+		}
+		targetSDK = fmt.Sprintf("%d (%s)", app.TargetSDK, name)
 	}
 
 	r.printer.PrintKV("Name", app.Name)
@@ -80,7 +89,11 @@ func (r *Reporter) PrintPlayStoreInfo(app *analyzer.AndroidApp) {
 	r.printer.PrintKV("URL", app.PlayStore.Url)
 	r.printer.PrintKV("Version", app.PlayStore.Version)
 	r.printer.PrintKV("Released", app.PlayStore.Release)
-	r.printer.PrintKV("Updated", app.PlayStore.Updated.Format("Jan 2, 2006"))
+	updated := "not found"
+	if !app.PlayStore.Updated.IsZero() {
+		updated = app.PlayStore.Updated.Format("Jan 2, 2006")
+	}
+	r.printer.PrintKV("Updated", updated)
 	r.printer.PrintKV("Genre", app.PlayStore.Genre)
 	r.printer.PrintKV("Summary", app.PlayStore.Summary)
 	r.printer.PrintKV("Installs", app.PlayStore.Installs)
@@ -107,8 +120,29 @@ func (r *Reporter) PrintCertInfo(app *analyzer.AndroidApp) {
 
 	r.printer.PrintKV("Serial", certinfo.Serial)
 	r.printer.PrintKV("Thumbprint", certinfo.Thumbprint)
+	r.printer.PrintKV("SHA256", certinfo.Sha256)
 	r.printer.PrintKV("Valid From", certinfo.ValidFrom)
 	r.printer.PrintKV("Valid To", certinfo.ValidTo)
+	if certinfo.Verified {
+		r.printer.PrintKV("Verified", "true")
+	} else {
+		r.printer.PrintKVRedBold("Verified", "false")
+	}
+	r.printer.PrintKV("Signing Scheme", certinfo.SigningScheme)
+	r.printer.PrintKV("Signers", fmt.Sprintf("%d", certinfo.SignerCount))
+	if certinfo.Expired {
+		r.printer.PrintKVRedBold("Expired", "true")
+	} else {
+		r.printer.PrintKV("Expired", "false")
+	}
+	if certinfo.Debug {
+		r.printer.PrintKVRedBold("Debug Certificate", "true")
+	} else {
+		r.printer.PrintKV("Debug Certificate", "false")
+	}
+	if certinfo.VerificationError != "" {
+		r.printer.PrintKVRedBold("Verification Error", certinfo.VerificationError)
+	}
 	r.printer.PrintKV("Issuer", issuer)
 	r.printer.PrintKV("Subject", subject)
 }
@@ -155,12 +189,51 @@ func (r *Reporter) PrintKoodousInfo(app *analyzer.AndroidApp) {
 	}
 }
 
-func (r *Reporter) PrintPermissions(permissions []string) {
+func (r *Reporter) PrintPermissions(permissions []string, classes map[string]string) {
 	r.printer.PrintSectionHeader("Permissions")
 	if len(permissions) == 0 {
 		r.printer.PrintItalic("No permissions found")
+		return
+	}
+	for _, permission := range permissions {
+		switch classes[permission] {
+		case constants.PermissionDangerous:
+			_, _ = r.printer.GetRedBold().Fprintf(r.printer.GetOut(), " - %s [dangerous]\n", utils.SanitizeText(permission))
+		case constants.PermissionCustom:
+			_, _ = r.printer.GetYellow().Fprintf(r.printer.GetOut(), " - %s [custom]\n", utils.SanitizeText(permission))
+		default:
+			_, _ = fmt.Fprintf(r.printer.GetOut(), " - %s\n", utils.SanitizeText(permission))
+		}
+	}
+}
+
+func (r *Reporter) PrintSecurityFlags(app *analyzer.AndroidApp) {
+	r.printer.PrintSectionHeader("Security Flags")
+	if app.Errors.Security != nil {
+		r.printer.PrintItalic("Security flags not available")
+		return
+	}
+
+	printBool := func(key string, value *bool) {
+		if value == nil {
+			r.printer.PrintKV(key, "not set")
+			return
+		}
+		if *value {
+			r.printer.PrintKVRedBold(key, "true")
+		} else {
+			r.printer.PrintKV(key, "false")
+		}
+	}
+
+	printBool("Debuggable", app.Debuggable)
+	printBool("Allow Backup", app.AllowBackup)
+	printBool("Test Only", app.TestOnly)
+	printBool("Uses Cleartext Traffic", app.UsesCleartextTraffic)
+	if app.NetworkSecurityConfig == "" {
+		r.printer.PrintKV("Network Security Config", "not set")
 	} else {
-		r.printer.PrintList(permissions)
+		r.printer.PrintKV("Network Security Config", app.NetworkSecurityConfig)
 	}
 }
 
@@ -173,7 +246,13 @@ func (r *Reporter) PrintMetadata(metadata map[string]string) {
 
 	// Only show metadata entries that have actual values
 	hasContent := false
-	for key, value := range metadata {
+	keys := make([]string, 0, len(metadata))
+	for key := range metadata {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		value := metadata[key]
 		// Skip empty values
 		if value != "" && value != constants.NilValue && value != constants.EmptySlice {
 			r.printer.PrintKV(key, value)
@@ -195,9 +274,17 @@ func (r *Reporter) PrintVTInfo(app *analyzer.AndroidApp) {
 	}
 	vtinfo := app.VirusTotal
 	r.printer.PrintKV("URL", vtinfo.Url)
-	r.printer.PrintKV("Submission Date", vtinfo.SubmissDate.String())
+	submissionDate := "not found"
+	if !vtinfo.SubmissDate.IsZero() {
+		submissionDate = vtinfo.SubmissDate.String()
+	}
+	r.printer.PrintKV("Submission Date", submissionDate)
 	r.printer.PrintKV("Submissions", fmt.Sprintf("%d", vtinfo.TimesSubmit))
-	r.printer.PrintKV("Last Analysis", vtinfo.LastAnalysis.String())
+	lastAnalysis := "not found"
+	if !vtinfo.LastAnalysis.IsZero() {
+		lastAnalysis = vtinfo.LastAnalysis.String()
+	}
+	r.printer.PrintKV("Last Analysis", lastAnalysis)
 
 	// Tags
 	if len(vtinfo.Tags) > 0 {
@@ -335,7 +422,7 @@ func (r *Reporter) PrintVTInfo(app *analyzer.AndroidApp) {
 			_, _ = fmt.Fprintln(r.printer.GetOut())
 			_, _ = r.printer.GetRed().Add(color.Bold).Fprintf(r.printer.GetOut(), "Dangerous Permissions:  %d found\n", len(androguard.DangerPerm))
 			for _, perm := range androguard.DangerPerm {
-				_, _ = fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(perm))
+				_, _ = fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(utils.SanitizeText(perm)))
 			}
 		}
 	}
@@ -353,7 +440,8 @@ func metadataToMap(metadata []analyzer.Metadata) map[string]string {
 func (r *Reporter) PrintAll(app *analyzer.AndroidApp) {
 	r.PrintGeneralInfo(app)
 	r.PrintHash(app.Hashes)
-	r.PrintPermissions(app.Permissions)
+	r.PrintPermissions(app.Permissions, app.PermissionClasses)
+	r.PrintSecurityFlags(app)
 	r.PrintMetadata(metadataToMap(app.Metadata))
 	r.PrintCertInfo(app)
 	r.PrintPlayStoreInfo(app)
@@ -375,7 +463,13 @@ func (r *Reporter) PrintBatchSummary(results map[string]*analyzer.AndroidApp, fa
 	vtMalicious := 0
 	vtUnknown := 0
 
-	for _, app := range results {
+	keys := make([]string, 0, len(results))
+	for key := range results {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		app := results[key]
 		pkgName := app.PackageName
 		if pkgName == "" {
 			pkgName = "Unknown"

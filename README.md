@@ -16,10 +16,13 @@
 
 From the APK itself, apkingo reads the package name, version name and version
 code, main activity, SDK versions and supported CPU architectures. It lists
-every requested permission and all application metadata, computes MD5, SHA1 and
-SHA256, and reports the signing certificate's serial, thumbprint, validity,
-issuer and subject. Pass `-locale` to pull the app name in a specific language,
-such as `-locale zh-CN`.
+every requested permission and marks it as dangerous, system or custom using
+the pinned Android 17 protection levels. It also reports manifest security
+flags such as debuggable, backup, test-only, cleartext traffic and network
+security config. Metadata, MD5, SHA1 and SHA256 hashes, and the signing
+certificate's serial, thumbprints, validity, issuer, subject, signing scheme
+and verification result are included. Pass `-locale` to pull the app name in a
+specific language, such as `-locale zh-CN`.
 
 It reads XAPK and APKS archives too, detecting and extracting the APKs inside,
 and `-dir` analyzes every APK in a directory in one run.
@@ -33,10 +36,9 @@ highlighted, the popular threat classification such as
 `trojan.pegasus/chrysaor`, the file reputation score, community detections from
 Sigma, YARA and IDS rules, and the file's tags. The same key pulls VirusTotal's
 Androguard analysis: the full APK structure, its activities, services,
-providers and receivers, its libraries and SDK versions, with dangerous
-permissions highlighted. A Koodous API key adds that service's detection
-status, community rating and trust score, vote counts, and the linked
-repository when one exists.
+providers and receivers, its libraries and SDK versions, with VirusTotal's
+dangerous permissions highlighted. A Koodous API key adds that service's
+detection status, community rating and trust score.
 
 Results print to the terminal in colour, with malware indicators in bold red.
 `-json` writes the whole analysis, VirusTotal and Koodous data included, as
@@ -51,7 +53,7 @@ Download the pre-compiled binary for your system from the [Releases](https://git
 ### From source
 
 ```bash
-go install github.com/andpalmier/apkingo/v2/cmd/apkingo@latest
+go install github.com/andpalmier/apkingo/v3/cmd/apkingo@latest
 ```
 
 ### From Homebrew
@@ -80,7 +82,7 @@ docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/app.xapk
 docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -dir /mnt
 
 # Analyze and export a JSON report
-docker run --rm -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk -json /mnt/report.json
+docker run --rm --user "$(id -u):$(id -g)" -v $(pwd):/mnt ghcr.io/andpalmier/apkingo -apk /mnt/target.apk -json /mnt/report.json
 ```
 
 ### From the command line
@@ -126,7 +128,7 @@ apkingo -apk <path_to_apk> -vtapi <YOUR_VT_KEY> -kapi <YOUR_KOODOUS_KEY>
 | `-vtapi` | VirusTotal API key (can also use `VT_API_KEY` env var) |
 | `-kapi` | Koodous API key (can also use `KOODOUS_API_KEY` env var) |
 | `-no-play-store` | Skip Play Store scraping for offline analysis |
-| `-vtupload` | Upload the APK to VirusTotal after analysis (interactive prompt) |
+| `-vtupload` | Upload a single APK to VirusTotal after analysis (interactive prompt) |
 | `-version` | Print the version, commit and build date, then exit |
 
 ## Screenshot
@@ -139,10 +141,10 @@ apkingo analyzing an Android malware:
 ## Third party libraries and API documentation
 
 - shogo82148/androidbinary: [GitHub repo](https://github.com/shogo82148/androidbinary) and [Go reference](https://pkg.go.dev/github.com/shogo82148/androidbinary)
+- avast/apkparser: [GitHub repo](https://github.com/avast/apkparser) and [Go reference](https://pkg.go.dev/github.com/avast/apkparser)
 - avast/apkverifier: [GitHub repo](https://github.com/avast/apkverifier) and [Go reference](https://pkg.go.dev/github.com/avast/apkverifier)
 - fatih/color: [GitHub repo](https://github.com/fatih/color) and [Go reference](https://pkg.go.dev/github.com/fatih/color)
 - n0madic/google-play-scraper: [GitHub repo](https://github.com/n0madic/google-play-scraper) and [Go reference](https://pkg.go.dev/github.com/n0madic/google-play-scraper)
-- parnurzeal/gorequest: [GitHub repo](https://github.com/parnurzeal/gorequest) and [Go reference](https://pkg.go.dev/github.com/parnurzeal/gorequest)
 - VirusTotal/vt-go: [GitHub repo](https://github.com/VirusTotal/vt-go) and [Go reference](https://pkg.go.dev/github.com/VirusTotal/vt-go)
 - [VirusTotal API documentation](https://docs.virustotal.com/reference/overview)
 - [Koodous API documentation](https://docs.koodous.com/api/apks.html)

@@ -3,9 +3,8 @@ on:
   push:
     branches:
       - main
-    tags:
-      - v*
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
@@ -15,19 +14,21 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       # Pinned rather than tracking stable. golangci-lint ships its own
       # type checker built against a particular Go release, and it cannot read
       # export data from a newer one: on Go 1.27 it failed to import even the
       # standard library ("export data version 4 is greater than maximum
       # supported version 2"), so every run was red regardless of the code.
       # Raise this together with the golangci-lint version below.
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version: "1.26"
           cache: true
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.11
         env:

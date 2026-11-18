@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"archive/zip"
 	"os"
 	"path/filepath"
 	"testing"
@@ -20,7 +21,7 @@ func TestFindAPKs(t *testing.T) {
 		"test2.xapk",
 		"test3.apks",
 		"test4.txt", // should be ignored
-		"test5.APK", // should be found (case insensitive check - currently not)
+		"test5.APK", // should be found (case-insensitive check)
 	}
 
 	for _, name := range testFiles {
@@ -41,10 +42,54 @@ func TestFindAPKs(t *testing.T) {
 		t.Fatalf("findAPKs failed: %v", err)
 	}
 
-	// Should find 3 APK files (.apk, .xapk, .apks)
-	expected := 3
+	// Should find 4 APK files (.apk, .xapk, .apks, .APK)
+	expected := 4
 	if len(paths) != expected {
 		t.Errorf("Expected %d APK files, got %d: %v", expected, len(paths), paths)
+	}
+}
+
+func TestAnalyzeDirectory_WithXAPK(t *testing.T) {
+	apkData, err := os.ReadFile("../../test/F-Droid.apk")
+	if err != nil {
+		t.Fatalf("Failed to read test APK: %v", err)
+	}
+
+	tmpDir := t.TempDir()
+	xapkPath := filepath.Join(tmpDir, "app.xapk")
+	xapkFile, err := os.Create(xapkPath)
+	if err != nil {
+		t.Fatalf("Failed to create XAPK: %v", err)
+	}
+	zw := zip.NewWriter(xapkFile)
+	w, err := zw.Create("base.apk")
+	if err != nil {
+		t.Fatalf("Failed to create APK entry: %v", err)
+	}
+	if _, err := w.Write(apkData); err != nil {
+		t.Fatalf("Failed to write APK entry: %v", err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("Failed to close zip writer: %v", err)
+	}
+	if err := xapkFile.Close(); err != nil {
+		t.Fatalf("Failed to close XAPK: %v", err)
+	}
+
+	results, failed, err := AnalyzeDirectory(tmpDir, "us", "", "", "", true)
+	if err != nil {
+		t.Fatalf("AnalyzeDirectory failed: %v", err)
+	}
+	if len(failed) != 0 {
+		t.Fatalf("Expected no failures, got %v", failed)
+	}
+	if len(results) != 1 {
+		t.Fatalf("Expected one analyzed APK, got %d", len(results))
+	}
+	for path := range results {
+		if filepath.Base(path) != "base.apk" {
+			t.Errorf("Expected extracted base.apk, got %s", path)
+		}
 	}
 }
 

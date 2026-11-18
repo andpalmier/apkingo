@@ -1,4 +1,11 @@
 version: 2
+project_name: apkingo
+release:
+  # The release workflow runs GoReleaser twice. The artifact pass must not
+  # touch the GitHub release after it has been published.
+  disable: '{{ eq (index .Env "RELEASE_STAGE") "artifacts" }}'
+  preflight:
+    fail_on_error: true
 before:
   hooks:
     - go mod tidy
@@ -19,9 +26,9 @@ builds:
     main: ./cmd/apkingo
     ldflags:
       - -s -w
-      - -X github.com/andpalmier/apkingo/v2/internal/version.Version={{.Version}}
-      - -X github.com/andpalmier/apkingo/v2/internal/version.Commit={{.ShortCommit}}
-      - -X github.com/andpalmier/apkingo/v2/internal/version.Date={{.Date}}
+      - -X github.com/andpalmier/apkingo/v3/internal/version.Version={{.Version}}
+      - -X github.com/andpalmier/apkingo/v3/internal/version.Commit={{.ShortCommit}}
+      - '-X github.com/andpalmier/apkingo/v3/internal/version.Date={{ if index .Env "BUILD_DATE" }}{{ index .Env "BUILD_DATE" }}{{ else }}{{ .Date }}{{ end }}'
   - id: windows
     env:
       - CGO_ENABLED=0
@@ -30,9 +37,9 @@ builds:
     main: ./cmd/apkingo
     ldflags:
       - -s -w
-      - -X github.com/andpalmier/apkingo/v2/internal/version.Version={{.Version}}
-      - -X github.com/andpalmier/apkingo/v2/internal/version.Commit={{.ShortCommit}}
-      - -X github.com/andpalmier/apkingo/v2/internal/version.Date={{.Date}}
+      - -X github.com/andpalmier/apkingo/v3/internal/version.Version={{.Version}}
+      - -X github.com/andpalmier/apkingo/v3/internal/version.Commit={{.ShortCommit}}
+      - '-X github.com/andpalmier/apkingo/v3/internal/version.Date={{ if index .Env "BUILD_DATE" }}{{ index .Env "BUILD_DATE" }}{{ else }}{{ .Date }}{{ end }}'
 
 archives:
   - id: nix
@@ -40,6 +47,8 @@ archives:
       - default
     formats:
       - tar.gz
+    builds_info:
+      mtime: '{{ if index .Env "BUILD_DATE" }}{{ index .Env "BUILD_DATE" }}{{ else }}{{ .Date }}{{ end }}'
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -52,6 +61,8 @@ archives:
       - windows
     formats:
       - zip
+    builds_info:
+      mtime: '{{ if index .Env "BUILD_DATE" }}{{ index .Env "BUILD_DATE" }}{{ else }}{{ .Date }}{{ end }}'
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -66,6 +77,8 @@ homebrew_casks:
       owner: andpalmier
       name: homebrew-tap
     homepage: "https://github.com/andpalmier/apkingo"
+    url:
+      template: "https://github.com/andpalmier/apkingo/releases/download/{{ urlPathEscape .Tag }}/{{ .ArtifactName }}"
     description: "Tool to extract info from APK files"
     license: "Apache-2.0"
     directory: Casks
@@ -77,13 +90,22 @@ homebrew_casks:
     # Clearing the quarantine attribute is a bypass: Apple may withdraw it, and
     # signing plus notarization is the durable answer. That needs an Apple
     # Developer account, so it is a separate decision.
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/apkingo"]
-          end
-
+    #
+    # This goes through custom_block rather than the hooks section because
+    # GoReleaser's hooks still emit Homebrew's deprecated `postflight` stanza
+    # (goreleaser/goreleaser#6870). Homebrew 7 wants the declarative
+    # `postflight_steps` DSL, which custom_block can write directly. Switch to
+    # `hooks.post.install_steps` once GoReleaser v2.19 ships it.
+    #
+    # {{ "{{staged_path}}" }} is escaped so GoReleaser emits the literal
+    # {{staged_path}} token for Homebrew to expand, instead of trying to
+    # evaluate it as a GoReleaser template action itself.
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/apkingo"]
+        end
+      end
 checksum:
   name_template: 'checksums.txt'
 snapshot:

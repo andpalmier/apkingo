@@ -2,50 +2,91 @@ name: goreleaser
 
 on:
   push:
-    # run only against tags
     tags:
-      - '*'
+      - 'v*'
+
+concurrency:
+  group: goreleaser-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
   packages: write
-  # issues: write
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
+  lint:
+    uses: ./.github/workflows/linter.yaml
+
   goreleaser:
+    needs: [test, lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-      - run: git fetch --force --tags
-      - uses: actions/setup-go@v7
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: stable
+          go-version: "1.26"
           cache: true
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # More assembly might be required: Docker logins, GPG, etc. It all depends
-      # on your needs.
-      - uses: goreleaser/goreleaser-action@v7
+
+      - name: Set build date
+        id: build_date
+        run: echo "value=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Build draft release
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7
         with:
-          # either 'goreleaser' (default) or 'goreleaser-pro':
           distribution: goreleaser
-          version: '~> v2'
-          args: release --clean
+          version: v2.20.2
+          args: release --clean --fail-fast --draft --skip=docker,homebrew
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro'
-          # distribution:
-          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          RELEASE_STAGE: release
+          BUILD_DATE: ${{ steps.build_date.outputs.value }}
+
+      - name: Publish release
+        id: publish_release
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          for attempt in 1 2 3; do
+            if gh release edit "$GITHUB_REF_NAME" --draft=false; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+
+      - name: Publish container and Homebrew
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7
+        with:
+          distribution: goreleaser
+          version: v2.20.2
+          args: release --clean --fail-fast --skip=before,changelog,sbom,sign,validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          RELEASE_STAGE: artifacts
+          BUILD_DATE: ${{ steps.build_date.outputs.value }}
+
+      - name: Revert release if artifact publish failed
+        if: failure() && steps.publish_release.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=true

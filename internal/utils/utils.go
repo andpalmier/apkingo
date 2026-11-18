@@ -4,6 +4,8 @@ package utils
 import (
 	"log"
 	"path/filepath"
+	"strings"
+	"unicode"
 )
 
 // Android SDK version names
@@ -52,9 +54,20 @@ func GetFileName(path string) string {
 	return filepath.Base(path)
 }
 
+// SanitizeText removes control and format characters from untrusted text so it
+// cannot inject terminal escape sequences when printed.
+func SanitizeText(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
+			return ' '
+		}
+		return r
+	}, s)
+}
+
 // LogError logs an error message if the error is not nil
 func LogError(msg string, err error) {
 	if err != nil {
-		log.Printf("%s: %s\n", msg, err)
+		log.Printf("%s: %s\n", msg, SanitizeText(err.Error()))
 	}
 }

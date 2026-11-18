@@ -6,23 +6,31 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
-	"github.com/andpalmier/apkingo/v2/internal/analyzer"
-	"github.com/andpalmier/apkingo/v2/internal/config"
-	"github.com/andpalmier/apkingo/v2/internal/report"
-	"github.com/andpalmier/apkingo/v2/internal/ui"
-	"github.com/andpalmier/apkingo/v2/internal/vt"
+	"github.com/andpalmier/apkingo/v3/internal/analyzer"
+	"github.com/andpalmier/apkingo/v3/internal/config"
+	"github.com/andpalmier/apkingo/v3/internal/report"
+	"github.com/andpalmier/apkingo/v3/internal/ui"
+	"github.com/andpalmier/apkingo/v3/internal/utils"
+	"github.com/andpalmier/apkingo/v3/internal/vt"
 )
 
 func main() {
 	cfg := config.Load()
+	if cfg.VTUpload && cfg.VTAPIKey == "" {
+		log.Fatal("-vtupload requires a VirusTotal API key")
+	}
 
 	printer := ui.NewPrinter()
 	reporter := report.NewReporter(printer)
 
 	// Handle directory mode
 	if cfg.DirPath != "" {
+		if cfg.VTUpload {
+			log.Fatal("-vtupload supports a single APK file only")
+		}
 		processDirectory(cfg, printer, reporter)
 		return
 	}
@@ -34,6 +42,9 @@ func main() {
 
 	// Check if the input is an XAPK/APKS file
 	if analyzer.IsXAPK(cfg.APKPath) {
+		if cfg.VTUpload {
+			log.Fatal("-vtupload supports a single APK file only")
+		}
 		processXAPK(cfg, printer, reporter)
 		return
 	}
@@ -42,7 +53,7 @@ func main() {
 	app := analyzer.AndroidApp{}
 
 	if err := app.ProcessAPK(cfg.APKPath, cfg.Country, cfg.Locale, cfg.VTAPIKey, cfg.KAPIKey, cfg.NoPlayStore); err != nil {
-		log.Fatalf("Error processing APK: %v", err)
+		log.Fatalf("Error processing APK: %s", utils.SanitizeText(err.Error()))
 	}
 
 	reporter.PrintBanner()
@@ -50,7 +61,7 @@ func main() {
 
 	if cfg.JSONFile != "" {
 		if err := app.ExportJSON(cfg.JSONFile); err != nil {
-			log.Fatalf("Failed to export JSON: %v", err)
+			log.Fatalf("Failed to export JSON: %s", utils.SanitizeText(err.Error()))
 		}
 	}
 
@@ -62,13 +73,13 @@ func main() {
 // processXAPK handles XAPK/APKS file processing.
 // It extracts APKs from the archive, analyzes each one, and cleans up.
 func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Reporter) {
-	fmt.Printf("[i] Detected XAPK/APKS file: %s\n", cfg.APKPath)
+	fmt.Printf("[i] Detected XAPK/APKS file: %s\n", utils.SanitizeText(cfg.APKPath))
 	fmt.Println("[i] Extracting APKs from archive...")
 
 	// Extract APKs from XAPK
 	apkPaths, err := analyzer.ExtractAPKs(cfg.APKPath)
 	if err != nil {
-		log.Fatalf("Failed to extract APKs from XAPK: %v", err)
+		log.Fatalf("Failed to extract APKs from XAPK: %s", utils.SanitizeText(err.Error()))
 	}
 
 	fmt.Printf("[i] Found %d APK(s) in archive\n\n", len(apkPaths))
@@ -77,12 +88,12 @@ func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Repor
 	var failed []string
 
 	for i, apkPath := range apkPaths {
-		fmt.Printf("[%d/%d] Processing: %s\n", i+1, len(apkPaths), filepath.Base(apkPath))
+		fmt.Printf("[%d/%d] Processing: %s\n", i+1, len(apkPaths), utils.SanitizeText(filepath.Base(apkPath)))
 
 		app := analyzer.AndroidApp{}
 
 		if err := app.ProcessAPK(apkPath, cfg.Country, cfg.Locale, cfg.VTAPIKey, cfg.KAPIKey, cfg.NoPlayStore); err != nil {
-			fmt.Printf("  [!] Failed to process: %v\n", err)
+			fmt.Printf("  [!] Failed to process: %s\n", utils.SanitizeText(err.Error()))
 			failed = append(failed, apkPath)
 			continue
 		}
@@ -95,7 +106,7 @@ func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Repor
 		if cfg.JSONFile != "" {
 			jsonPath := generateJSONPathForAPK(cfg.JSONFile, apkPath)
 			if err := app.ExportJSON(jsonPath); err != nil {
-				fmt.Printf("  [!] Failed to export JSON: %v\n", err)
+				fmt.Printf("  [!] Failed to export JSON: %s\n", utils.SanitizeText(err.Error()))
 			}
 		}
 
@@ -110,7 +121,7 @@ func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Repor
 	// Clean up extracted files
 	fmt.Println("[i] Cleaning up extracted files...")
 	if err := analyzer.CleanupExtractedFiles(apkPaths); err != nil {
-		log.Printf("Warning: Failed to clean up extracted files: %v", err)
+		log.Printf("Warning: Failed to clean up extracted files: %s", utils.SanitizeText(err.Error()))
 	}
 
 	fmt.Println("[i] Done!")
@@ -118,11 +129,11 @@ func processXAPK(cfg *config.Config, printer *ui.Printer, reporter *report.Repor
 
 // processDirectory handles batch analysis of multiple APKs in a directory.
 func processDirectory(cfg *config.Config, printer *ui.Printer, reporter *report.Reporter) {
-	fmt.Printf("[i] Analyzing APKs in directory: %s\n", cfg.DirPath)
+	fmt.Printf("[i] Analyzing APKs in directory: %s\n", utils.SanitizeText(cfg.DirPath))
 
 	results, failed, err := analyzer.AnalyzeDirectory(cfg.DirPath, cfg.Country, cfg.Locale, cfg.VTAPIKey, cfg.KAPIKey, cfg.NoPlayStore)
 	if err != nil {
-		log.Fatalf("Error analyzing directory: %v", err)
+		log.Fatalf("Error analyzing directory: %s", utils.SanitizeText(err.Error()))
 	}
 
 	// Print detailed report for each APK (consistent with XAPK mode)
@@ -136,10 +147,11 @@ func processDirectory(cfg *config.Config, printer *ui.Printer, reporter *report.
 		for k := range results {
 			keys = append(keys, k)
 		}
+		sort.Strings(keys)
 
 		for i, apkPath := range keys {
 			app := results[apkPath]
-			fmt.Printf("\n--- APK %d: %s ---\n", i+1, filepath.Base(apkPath))
+			fmt.Printf("\n--- APK %d: %s ---\n", i+1, utils.SanitizeText(filepath.Base(apkPath)))
 			reporter.PrintAll(app)
 		}
 	}
@@ -152,10 +164,10 @@ func processDirectory(cfg *config.Config, printer *ui.Printer, reporter *report.
 		for apkPath, app := range results {
 			jsonPath := generateJSONPathForAPK(cfg.JSONFile, apkPath)
 			if err := app.ExportJSON(jsonPath); err != nil {
-				log.Printf("Warning: Failed to export JSON for %s: %v", apkPath, err)
+				log.Printf("Warning: Failed to export JSON for %s: %s", utils.SanitizeText(apkPath), utils.SanitizeText(err.Error()))
 			}
 		}
-		fmt.Printf("\n[i] JSON reports exported to: %s\n", cfg.JSONFile)
+		fmt.Printf("\n[i] JSON reports exported to: %s\n", utils.SanitizeText(cfg.JSONFile))
 	}
 
 	fmt.Println("[i] Done!")
@@ -177,7 +189,7 @@ func askToUploadToVT(apkPath, vtAPIKey string) {
 	ans := strings.ToLower(answer.Text())
 	if ans == "yes" || ans == "y" {
 		if err := vt.ScanFile(apkPath, vtAPIKey); err != nil {
-			log.Fatalf("VirusTotal scan failed: %v", err)
+			log.Fatalf("VirusTotal scan failed: %s", utils.SanitizeText(err.Error()))
 		}
 	}
 }

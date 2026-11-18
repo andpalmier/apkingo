@@ -1,7 +1,9 @@
 package analyzer
 
 import (
+	"archive/zip"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -73,6 +75,57 @@ func TestIsAPKFile(t *testing.T) {
 		result := isAPKFile(tc.name)
 		if result != tc.expected {
 			t.Errorf("isAPKFile(%q) = %v, expected %v", tc.name, result, tc.expected)
+		}
+	}
+}
+
+func TestExtractAPKs_DuplicateBasenames(t *testing.T) {
+	xapkPath := filepath.Join(t.TempDir(), "app.xapk")
+	f, err := os.Create(xapkPath)
+	if err != nil {
+		t.Fatalf("Failed to create XAPK: %v", err)
+	}
+	zw := zip.NewWriter(f)
+	for _, entry := range []struct {
+		name string
+		body string
+	}{
+		{"a/base.apk", "first"},
+		{"b/base.apk", "second"},
+	} {
+		w, err := zw.Create(entry.name)
+		if err != nil {
+			t.Fatalf("Failed to create %s: %v", entry.name, err)
+		}
+		if _, err := w.Write([]byte(entry.body)); err != nil {
+			t.Fatalf("Failed to write %s: %v", entry.name, err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("Failed to close zip writer: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatalf("Failed to close XAPK: %v", err)
+	}
+
+	paths, err := ExtractAPKs(xapkPath)
+	if err != nil {
+		t.Fatalf("ExtractAPKs failed: %v", err)
+	}
+	defer func() { _ = CleanupExtractedFiles(paths) }()
+	if len(paths) != 2 {
+		t.Fatalf("Expected two extracted APKs, got %d", len(paths))
+	}
+	if paths[0] == paths[1] {
+		t.Fatalf("Duplicate basenames overwrote each other: %v", paths)
+	}
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("Failed to read %s: %v", path, err)
+		}
+		if string(data) != "first" && string(data) != "second" {
+			t.Errorf("Unexpected contents in %s: %q", path, data)
 		}
 	}
 }

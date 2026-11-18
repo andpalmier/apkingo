@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/VirusTotal/vt-go"
-	"github.com/andpalmier/apkingo/v2/internal/constants"
-	"github.com/andpalmier/apkingo/v2/internal/utils"
+	"github.com/andpalmier/apkingo/v3/internal/constants"
+	"github.com/andpalmier/apkingo/v3/internal/utils"
 )
 
 // newClient creates a VirusTotal client with custom HTTP timeout.
@@ -93,7 +93,7 @@ func ScanFile(path string, vtapikey string) error {
 			if progress >= 100 {
 				status = "scanning..."
 			}
-			_, _ = fmt.Printf("\r%s %s %4.1f%%", path, status, progress)
+			_, _ = fmt.Printf("\r%s %s %4.1f%%", utils.SanitizeText(path), status, progress)
 		}
 	}()
 
@@ -117,7 +117,7 @@ func ScanFile(path string, vtapikey string) error {
 	}
 
 	_, _ = fmt.Println("\n\nFile uploaded. The analysis may take some time.")
-	_, _ = fmt.Printf("\nTrack the analysis progress at: https://www.virustotal.com/gui/file-analysis/%s\n\n", analysis.ID())
+	_, _ = fmt.Printf("\nTrack the analysis progress at: https://www.virustotal.com/gui/file-analysis/%s\n\n", utils.SanitizeText(analysis.ID()))
 	return nil
 }
 

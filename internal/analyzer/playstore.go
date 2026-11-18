@@ -3,11 +3,19 @@ package analyzer
 import (
 	"errors"
 	"html"
+	"net/http"
 	"time"
 
-	"github.com/andpalmier/apkingo/v2/internal/utils"
+	"github.com/andpalmier/apkingo/v3/internal/constants"
+	"github.com/andpalmier/apkingo/v3/internal/utils"
 	playapp "github.com/n0madic/google-play-scraper/pkg/app"
 )
+
+func init() {
+	// The scraper hardcodes http.DefaultClient, so this is the only way to give
+	// Play Store lookups a deadline without replacing the dependency.
+	http.DefaultClient.Timeout = constants.DefaultHTTPTimeout
+}
 
 // PlayStoreInfo - struct for Play Store information
 type PlayStoreInfo struct {

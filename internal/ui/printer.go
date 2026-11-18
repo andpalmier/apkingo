@@ -8,7 +8,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/andpalmier/apkingo/v2/internal/constants"
+	"github.com/andpalmier/apkingo/v3/internal/constants"
+	"github.com/andpalmier/apkingo/v3/internal/utils"
 	"github.com/fatih/color"
 )
 
@@ -55,6 +56,10 @@ func (p *Printer) GetCyan() *color.Color {
 	return p.cyan
 }
 
+func (p *Printer) GetYellow() *color.Color {
+	return p.yellow
+}
+
 func (p *Printer) GetTabWriter() *tabwriter.Writer {
 	return p.tw
 }
@@ -66,31 +71,31 @@ func (p *Printer) GetOut() io.Writer {
 func (p *Printer) PrintSectionHeader(title string) {
 	p.Flush()
 	_, _ = fmt.Fprintln(p.out)
-	_, _ = p.yellow.Fprintf(p.out, "─── %s ───\n", strings.ToUpper(title))
+	_, _ = p.yellow.Fprintf(p.out, "─── %s ───\n", strings.ToUpper(utils.SanitizeText(title)))
 }
 
 func (p *Printer) PrintKV(key, value string) {
-	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", utils.SanitizeText(key))
 	if value != "" && value != constants.NilValue && value != constants.EmptySlice {
-		_, _ = p.cyan.Fprintln(p.tw, value)
+		_, _ = p.cyan.Fprintln(p.tw, utils.SanitizeText(value))
 	} else {
 		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintKVRed(key, value string) {
-	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", utils.SanitizeText(key))
 	if value != "" && value != constants.NilValue && value != constants.EmptySlice {
-		_, _ = p.red.Fprintln(p.tw, value)
+		_, _ = p.red.Fprintln(p.tw, utils.SanitizeText(value))
 	} else {
 		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
 }
 
 func (p *Printer) PrintKVRedBold(key, value string) {
-	_, _ = fmt.Fprintf(p.tw, "%s:\t", key)
+	_, _ = fmt.Fprintf(p.tw, "%s:\t", utils.SanitizeText(key))
 	if value != "" && value != constants.NilValue && value != constants.EmptySlice {
-		_, _ = p.redBold.Fprintln(p.tw, value)
+		_, _ = p.redBold.Fprintln(p.tw, utils.SanitizeText(value))
 	} else {
 		_, _ = p.italic.Fprintln(p.tw, "not found")
 	}
@@ -102,7 +107,7 @@ func (p *Printer) PrintList(items []string) {
 		return
 	}
 	for _, item := range items {
-		_, _ = fmt.Fprintf(p.out, " - %s\n", item)
+		_, _ = fmt.Fprintf(p.out, " - %s\n", utils.SanitizeText(item))
 	}
 }
 
@@ -118,18 +123,30 @@ by @andpalmier
 
 func (p *Printer) PrintText(msg string) {
 	p.Flush()
-	_, _ = fmt.Fprintln(p.out, msg)
+	_, _ = fmt.Fprintln(p.out, utils.SanitizeText(msg))
 }
 
 func (p *Printer) PrintItalic(msg string) {
 	p.Flush()
-	_, _ = p.italic.Fprintln(p.out, msg)
+	_, _ = p.italic.Fprintln(p.out, utils.SanitizeText(msg))
 }
 
 func (p *Printer) Printf(format string, a ...interface{}) {
-	_, _ = fmt.Fprintf(p.tw, format, a...)
+	_, _ = fmt.Fprintf(p.tw, format, sanitizeArgs(a)...)
 }
 
 func (p *Printer) Println(a ...interface{}) {
-	_, _ = fmt.Fprintln(p.tw, a...)
+	_, _ = fmt.Fprintln(p.tw, sanitizeArgs(a)...)
+}
+
+func sanitizeArgs(a []interface{}) []interface{} {
+	clean := make([]interface{}, len(a))
+	for i, arg := range a {
+		if s, ok := arg.(string); ok {
+			clean[i] = utils.SanitizeText(s)
+		} else {
+			clean[i] = arg
+		}
+	}
+	return clean
 }

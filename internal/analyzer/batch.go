@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/andpalmier/apkingo/v3/internal/utils"
 )
 
 // AnalyzeDirectory analyzes all APK files in a given directory.
@@ -32,19 +35,45 @@ func AnalyzeDirectory(dirPath, country, locale, vtAPIKey, koodousAPI string, noP
 		return nil, nil, fmt.Errorf("no APK files found in directory: %s", dirPath)
 	}
 
-	// Analyze each APK with progress feedback
 	results := make(map[string]*AndroidApp)
 	var failed []string
+	var analysisPaths []string
+	var extractedPaths []string
 
-	fmt.Printf("[i] Found %d APK(s) to analyze\n\n", len(apkPaths))
+	for _, apkPath := range apkPaths {
+		if !IsXAPK(apkPath) {
+			analysisPaths = append(analysisPaths, apkPath)
+			continue
+		}
 
-	for i, apkPath := range apkPaths {
-		fmt.Printf("[%d/%d] Processing: %s\n", i+1, len(apkPaths), filepath.Base(apkPath))
+		paths, err := ExtractAPKs(apkPath)
+		if err != nil {
+			failed = append(failed, apkPath)
+			fmt.Printf("  [!] Failed to extract %s: %s\n", utils.SanitizeText(filepath.Base(apkPath)), utils.SanitizeText(err.Error()))
+			continue
+		}
+		analysisPaths = append(analysisPaths, paths...)
+		extractedPaths = append(extractedPaths, paths...)
+	}
+
+	if len(extractedPaths) > 0 {
+		defer func() {
+			if err := CleanupExtractedFiles(extractedPaths); err != nil {
+				fmt.Printf("[!] Failed to clean up extracted files: %s\n", utils.SanitizeText(err.Error()))
+			}
+		}()
+	}
+
+	// Analyze each APK with progress feedback
+	fmt.Printf("[i] Found %d APK(s) to analyze\n\n", len(analysisPaths))
+
+	for i, apkPath := range analysisPaths {
+		fmt.Printf("[%d/%d] Processing: %s\n", i+1, len(analysisPaths), utils.SanitizeText(filepath.Base(apkPath)))
 
 		app := &AndroidApp{}
 		if err := app.ProcessAPK(apkPath, country, locale, vtAPIKey, koodousAPI, noPlayStore); err != nil {
 			// Log error but continue with other files
-			fmt.Printf("  [!] Failed to process: %v\n", err)
+			fmt.Printf("  [!] Failed to process: %s\n", utils.SanitizeText(err.Error()))
 			failed = append(failed, apkPath)
 			continue
 		}
@@ -53,7 +82,7 @@ func AnalyzeDirectory(dirPath, country, locale, vtAPIKey, koodousAPI string, noP
 	}
 
 	if len(failed) > 0 {
-		fmt.Printf("[!] Failed to process %d out of %d APK(s)\n\n", len(failed), len(apkPaths))
+		fmt.Printf("[!] Failed to process %d out of %d APK(s)\n\n", len(failed), len(analysisPaths))
 	}
 
 	return results, failed, nil
@@ -75,8 +104,8 @@ func findAPKs(dirPath string) ([]string, error) {
 
 		// Check file extension
 		name := entry.Name()
-		ext := filepath.Ext(name)
-		if ext == ".apk" || ext == ".xapk" || ext == ".apks" {
+		switch strings.ToLower(filepath.Ext(name)) {
+		case ".apk", ".xapk", ".apks":
 			apkPaths = append(apkPaths, filepath.Join(dirPath, name))
 		}
 	}

@@ -33,6 +33,8 @@ vendor/
 
 # Test APKs (these are large and not needed in Docker)
 test/*.apk
+test/*.xapk
+test/*.apks
 
 # CI/CD
 .github/

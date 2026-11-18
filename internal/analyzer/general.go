@@ -2,10 +2,15 @@ package analyzer
 
 import (
 	"archive/zip"
+	"bytes"
+	"encoding/xml"
+	"fmt"
 	"sort"
 	"strings"
 
-	"github.com/andpalmier/apkingo/v2/internal/utils"
+	"github.com/andpalmier/apkingo/v3/internal/constants"
+	"github.com/andpalmier/apkingo/v3/internal/utils"
+	"github.com/avast/apkparser"
 	"github.com/shogo82148/androidbinary"
 	"github.com/shogo82148/androidbinary/apk"
 )
@@ -42,7 +47,10 @@ func (app *AndroidApp) SetGeneralInfo(pkg *apk.Apk, locale string) error {
 		}
 	}
 
-	app.PackageName = pkg.PackageName()
+	app.PackageName, err = pkg.Manifest().Package.String()
+	if err != nil {
+		return fmt.Errorf("error getting package name: %w", err)
+	}
 
 	// Extract version name (human-readable, e.g. "1.2.3")
 	app.VersionName, err = pkg.Manifest().VersionName.String()
@@ -61,10 +69,12 @@ func (app *AndroidApp) SetGeneralInfo(pkg *apk.Apk, locale string) error {
 	app.TargetSDK, err = pkg.Manifest().SDK.Target.Int32()
 	utils.LogError("error getting target SDK information", err)
 
+	app.PermissionClasses = make(map[string]string)
 	for _, n := range pkg.Manifest().UsesPermissions {
 		permission, _ := n.Name.String()
 		if permission != "" {
 			app.Permissions = append(app.Permissions, permission)
+			app.PermissionClasses[permission] = constants.PermissionClass(permission)
 		}
 	}
 
@@ -79,6 +89,44 @@ func (app *AndroidApp) SetGeneralInfo(pkg *apk.Apk, locale string) error {
 		}
 	}
 
+	return nil
+}
+
+type securityManifest struct {
+	Application struct {
+		Debuggable            *bool  `xml:"http://schemas.android.com/apk/res/android debuggable,attr"`
+		AllowBackup           *bool  `xml:"http://schemas.android.com/apk/res/android allowBackup,attr"`
+		TestOnly              *bool  `xml:"http://schemas.android.com/apk/res/android testOnly,attr"`
+		UsesCleartextTraffic  *bool  `xml:"http://schemas.android.com/apk/res/android usesCleartextTraffic,attr"`
+		NetworkSecurityConfig string `xml:"http://schemas.android.com/apk/res/android networkSecurityConfig,attr"`
+	} `xml:"application"`
+}
+
+// SetSecurityFlags extracts security-relevant flags from AndroidManifest.xml.
+func (app *AndroidApp) SetSecurityFlags(apkPath string) error {
+	var buf bytes.Buffer
+	enc := xml.NewEncoder(&buf)
+	zipErr, _, manifestErr := apkparser.ParseApk(apkPath, enc)
+	if zipErr != nil {
+		return fmt.Errorf("error opening APK manifest: %w", zipErr)
+	}
+	if err := enc.Flush(); err != nil {
+		return fmt.Errorf("error finishing APK manifest XML: %w", err)
+	}
+	if manifestErr != nil {
+		return fmt.Errorf("error parsing AndroidManifest.xml: %w", manifestErr)
+	}
+
+	var manifest securityManifest
+	if err := xml.Unmarshal(buf.Bytes(), &manifest); err != nil {
+		return fmt.Errorf("error decoding AndroidManifest.xml: %w", err)
+	}
+
+	app.Debuggable = manifest.Application.Debuggable
+	app.AllowBackup = manifest.Application.AllowBackup
+	app.TestOnly = manifest.Application.TestOnly
+	app.UsesCleartextTraffic = manifest.Application.UsesCleartextTraffic
+	app.NetworkSecurityConfig = manifest.Application.NetworkSecurityConfig
 	return nil
 }
 
