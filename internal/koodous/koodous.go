@@ -66,7 +66,7 @@ func GetInfo(kapi, hash string) (*KoodousInfo, error) {
 		return nil, fmt.Errorf("error reading Koodous response: %w", err)
 	}
 	if len(body) > maxKoodousResponseBytes {
-		return nil, fmt.Errorf("Koodous response exceeds %d bytes", maxKoodousResponseBytes)
+		return nil, fmt.Errorf("koodous response exceeds %d bytes", maxKoodousResponseBytes)
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
@@ -82,7 +82,7 @@ func GetInfo(kapi, hash string) (*KoodousInfo, error) {
 			utils.LogError("error interpreting Koodous response", err)
 			return nil, err
 		}
-		return nil, fmt.Errorf("Koodous returned %s", resp.Status)
+		return nil, fmt.Errorf("koodous returned %s", resp.Status)
 	}
 
 	var koodousResult KoodousInfo

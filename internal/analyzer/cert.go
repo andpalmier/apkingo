@@ -65,7 +65,7 @@ func (app *AndroidApp) SetCertInfo(filepath string) error {
 		certs, extractErr := apkverifier.ExtractCerts(filepath, nil)
 		if extractErr != nil {
 			if verifyErr != nil {
-				return fmt.Errorf("signature verification failed: %w (certificate extraction failed: %v)", verifyErr, extractErr)
+				return fmt.Errorf("signature verification failed: %w (certificate extraction failed: %w)", verifyErr, extractErr)
 			}
 			return extractErr
 		}
