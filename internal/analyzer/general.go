@@ -92,17 +92,45 @@ func (app *AndroidApp) SetGeneralInfo(pkg *apk.Apk, locale string) error {
 	return nil
 }
 
+type manifestComponent struct {
+	Name string `xml:"http://schemas.android.com/apk/res/android name,attr"`
+}
+
 type securityManifest struct {
 	Application struct {
-		Debuggable            *bool  `xml:"http://schemas.android.com/apk/res/android debuggable,attr"`
-		AllowBackup           *bool  `xml:"http://schemas.android.com/apk/res/android allowBackup,attr"`
-		TestOnly              *bool  `xml:"http://schemas.android.com/apk/res/android testOnly,attr"`
-		UsesCleartextTraffic  *bool  `xml:"http://schemas.android.com/apk/res/android usesCleartextTraffic,attr"`
-		NetworkSecurityConfig string `xml:"http://schemas.android.com/apk/res/android networkSecurityConfig,attr"`
+		Debuggable            *bool               `xml:"http://schemas.android.com/apk/res/android debuggable,attr"`
+		AllowBackup           *bool               `xml:"http://schemas.android.com/apk/res/android allowBackup,attr"`
+		TestOnly              *bool               `xml:"http://schemas.android.com/apk/res/android testOnly,attr"`
+		UsesCleartextTraffic  *bool               `xml:"http://schemas.android.com/apk/res/android usesCleartextTraffic,attr"`
+		NetworkSecurityConfig string              `xml:"http://schemas.android.com/apk/res/android networkSecurityConfig,attr"`
+		Activities            []manifestComponent `xml:"activity"`
+		ActivityAliases       []manifestComponent `xml:"activity-alias"`
+		Services              []manifestComponent `xml:"service"`
+		Providers             []manifestComponent `xml:"provider"`
+		Receivers             []manifestComponent `xml:"receiver"`
 	} `xml:"application"`
 }
 
-// SetSecurityFlags extracts security-relevant flags from AndroidManifest.xml.
+func manifestComponentNames(groups ...[]manifestComponent) []string {
+	seen := make(map[string]struct{})
+	names := make([]string, 0)
+	for _, group := range groups {
+		for _, component := range group {
+			if component.Name == "" {
+				continue
+			}
+			if _, ok := seen[component.Name]; ok {
+				continue
+			}
+			seen[component.Name] = struct{}{}
+			names = append(names, component.Name)
+		}
+	}
+	sort.Strings(names)
+	return names
+}
+
+// SetSecurityFlags extracts security flags and declared components from AndroidManifest.xml.
 func (app *AndroidApp) SetSecurityFlags(apkPath string) error {
 	var buf bytes.Buffer
 	enc := xml.NewEncoder(&buf)
@@ -127,6 +155,10 @@ func (app *AndroidApp) SetSecurityFlags(apkPath string) error {
 	app.TestOnly = manifest.Application.TestOnly
 	app.UsesCleartextTraffic = manifest.Application.UsesCleartextTraffic
 	app.NetworkSecurityConfig = manifest.Application.NetworkSecurityConfig
+	app.Activities = manifestComponentNames(manifest.Application.Activities, manifest.Application.ActivityAliases)
+	app.Services = manifestComponentNames(manifest.Application.Services)
+	app.Providers = manifestComponentNames(manifest.Application.Providers)
+	app.Receivers = manifestComponentNames(manifest.Application.Receivers)
 	return nil
 }
 

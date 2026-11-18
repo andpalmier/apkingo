@@ -1,6 +1,7 @@
 package analyzer_test
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/andpalmier/apkingo/v3/internal/analyzer"
@@ -104,6 +105,64 @@ func TestSetSecurityFlags(t *testing.T) {
 			}
 			if got := app.NetworkSecurityConfig != ""; got != tt.wantNetworkConfigSet {
 				t.Errorf("NetworkSecurityConfig set = %t, want %t", got, tt.wantNetworkConfigSet)
+			}
+		})
+	}
+}
+
+func TestSetSecurityFlagsComponents(t *testing.T) {
+	tests := []struct {
+		name           string
+		apkPath        string
+		wantActivities []string
+		wantServices   []string
+		wantProviders  []string
+		wantReceivers  []string
+	}{
+		{
+			name:           "F-Droid",
+			apkPath:        "../../test/F-Droid.apk",
+			wantActivities: []string{"org.fdroid.fdroid.views.main.MainActivity"},
+			wantServices:   []string{"org.fdroid.fdroid.UpdateService"},
+			wantProviders:  []string{"org.fdroid.fdroid.data.AppProvider"},
+			wantReceivers:  []string{"org.fdroid.fdroid.receiver.StartupReceiver"},
+		},
+		{
+			name:    "Snapseed",
+			apkPath: "../../test/snapseed.apk",
+			wantActivities: []string{
+				"com.google.android.apps.snapseed.activities.edit.MainActivity",
+				"com.google.android.apps.snapseed.MainActivity",
+			},
+			wantServices:  []string{"com.google.android.apps.snapseed.core.SaveFilteredImageLocalService"},
+			wantProviders: []string{"android.support.v4.content.FileProvider"},
+			wantReceivers: []string{"com.google.android.libraries.social.silentfeedback.impl.SilentFeedbackReceiver"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := analyzer.AndroidApp{}
+			if err := app.SetSecurityFlags(tt.apkPath); err != nil {
+				t.Fatalf("SetSecurityFlags failed: %v", err)
+			}
+
+			checks := []struct {
+				label string
+				got   []string
+				want  []string
+			}{
+				{"Activities", app.Activities, tt.wantActivities},
+				{"Services", app.Services, tt.wantServices},
+				{"Providers", app.Providers, tt.wantProviders},
+				{"Receivers", app.Receivers, tt.wantReceivers},
+			}
+			for _, check := range checks {
+				for _, want := range check.want {
+					if !slices.Contains(check.got, want) {
+						t.Errorf("%s missing %q: %v", check.label, want, check.got)
+					}
+				}
 			}
 		})
 	}

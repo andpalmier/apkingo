@@ -10,7 +10,6 @@ import (
 	"github.com/andpalmier/apkingo/v3/internal/constants"
 	"github.com/andpalmier/apkingo/v3/internal/ui"
 	"github.com/andpalmier/apkingo/v3/internal/utils"
-	"github.com/fatih/color"
 )
 
 type Reporter struct {
@@ -207,6 +206,28 @@ func (r *Reporter) PrintPermissions(permissions []string, classes map[string]str
 	}
 }
 
+func (r *Reporter) PrintComponents(app *analyzer.AndroidApp) {
+	r.printer.PrintSectionHeader("Components")
+	hasComponents := false
+	printComponents := func(label string, components []string) {
+		if len(components) == 0 {
+			return
+		}
+		hasComponents = true
+		r.printer.Flush()
+		_, _ = fmt.Fprintln(r.printer.GetOut())
+		_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "%s (%d):\n", label, len(components))
+		r.printer.PrintList(components)
+	}
+	printComponents("Activities", app.Activities)
+	printComponents("Services", app.Services)
+	printComponents("Providers", app.Providers)
+	printComponents("Receivers", app.Receivers)
+	if !hasComponents {
+		r.printer.PrintItalic("No components found")
+	}
+}
+
 func (r *Reporter) PrintSecurityFlags(app *analyzer.AndroidApp) {
 	r.printer.PrintSectionHeader("Security Flags")
 	if app.Errors.Security != nil {
@@ -380,35 +401,6 @@ func (r *Reporter) PrintVTInfo(app *analyzer.AndroidApp) {
 			r.printer.PrintKV("Main Activity", androguard.MainActivity)
 		}
 
-		// Components
-		if len(androguard.Activities) > 0 {
-			r.printer.Flush()
-			_, _ = fmt.Fprintln(r.printer.GetOut())
-			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Activities (%d):\n", len(androguard.Activities))
-			r.printer.PrintList(androguard.Activities)
-		}
-
-		if len(androguard.Services) > 0 {
-			r.printer.Flush()
-			_, _ = fmt.Fprintln(r.printer.GetOut())
-			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Services (%d):\n", len(androguard.Services))
-			r.printer.PrintList(androguard.Services)
-		}
-
-		if len(androguard.Providers) > 0 {
-			r.printer.Flush()
-			_, _ = fmt.Fprintln(r.printer.GetOut())
-			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Providers (%d):\n", len(androguard.Providers))
-			r.printer.PrintList(androguard.Providers)
-		}
-
-		if len(androguard.Receivers) > 0 {
-			r.printer.Flush()
-			_, _ = fmt.Fprintln(r.printer.GetOut())
-			_, _ = r.printer.GetCyan().Fprintf(r.printer.GetOut(), "Receivers (%d):\n", len(androguard.Receivers))
-			r.printer.PrintList(androguard.Receivers)
-		}
-
 		if len(androguard.Libraries) > 0 {
 			r.printer.Flush()
 			_, _ = fmt.Fprintln(r.printer.GetOut())
@@ -416,15 +408,6 @@ func (r *Reporter) PrintVTInfo(app *analyzer.AndroidApp) {
 			r.printer.PrintList(androguard.Libraries)
 		}
 
-		// Dangerous Permissions - highlighted
-		if len(androguard.DangerPerm) > 0 {
-			r.printer.Flush()
-			_, _ = fmt.Fprintln(r.printer.GetOut())
-			_, _ = r.printer.GetRed().Add(color.Bold).Fprintf(r.printer.GetOut(), "Dangerous Permissions:  %d found\n", len(androguard.DangerPerm))
-			for _, perm := range androguard.DangerPerm {
-				_, _ = fmt.Fprintf(r.printer.GetOut(), "  • %s\n", r.printer.GetRed().Sprint(utils.SanitizeText(perm)))
-			}
-		}
 	}
 }
 
@@ -441,6 +424,7 @@ func (r *Reporter) PrintAll(app *analyzer.AndroidApp) {
 	r.PrintGeneralInfo(app)
 	r.PrintHash(app.Hashes)
 	r.PrintPermissions(app.Permissions, app.PermissionClasses)
+	r.PrintComponents(app)
 	r.PrintSecurityFlags(app)
 	r.PrintMetadata(metadataToMap(app.Metadata))
 	r.PrintCertInfo(app)

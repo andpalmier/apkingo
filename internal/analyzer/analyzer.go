@@ -27,6 +27,10 @@ type AndroidApp struct {
 	Hashes                Hashes               `json:"hashes"`
 	Permissions           []string             `json:"permissions"`
 	PermissionClasses     map[string]string    `json:"permission-classes,omitempty"`
+	Activities            []string             `json:"activities,omitempty"`
+	Services              []string             `json:"services,omitempty"`
+	Providers             []string             `json:"providers,omitempty"`
+	Receivers             []string             `json:"receivers,omitempty"`
 	Metadata              []Metadata           `json:"metadata"`
 	Debuggable            *bool                `json:"debuggable,omitempty"`
 	AllowBackup           *bool                `json:"allow-backup,omitempty"`

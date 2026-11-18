@@ -16,13 +16,14 @@
 
 From the APK itself, apkingo reads the package name, version name and version
 code, main activity, SDK versions and supported CPU architectures. It lists
-every requested permission and marks it as dangerous, system or custom using
-the pinned Android 17 protection levels. It also reports manifest security
-flags such as debuggable, backup, test-only, cleartext traffic and network
-security config. Metadata, MD5, SHA1 and SHA256 hashes, and the signing
-certificate's serial, thumbprints, validity, issuer, subject, signing scheme
-and verification result are included. Pass `-locale` to pull the app name in a
-specific language, such as `-locale zh-CN`.
+declared activities, services, providers and receivers, every requested
+permission with dangerous, system or custom classification from the pinned
+Android 17 protection levels, and manifest security flags such as debuggable,
+backup, test-only, cleartext traffic and network security config. Metadata,
+MD5, SHA1 and SHA256 hashes, and the signing certificate's serial, thumbprints,
+validity, issuer, subject, signing scheme and verification result are included.
+Pass `-locale` to pull the app name in a specific language, such as
+`-locale zh-CN`.
 
 It reads XAPK and APKS archives too, detecting and extracting the APKs inside,
 and `-dir` analyzes every APK in a directory in one run.
@@ -34,11 +35,9 @@ restrictive network, or anywhere Play is unreachable.
 With a VirusTotal API key it adds detection statistics with red flags
 highlighted, the popular threat classification such as
 `trojan.pegasus/chrysaor`, the file reputation score, community detections from
-Sigma, YARA and IDS rules, and the file's tags. The same key pulls VirusTotal's
-Androguard analysis: the full APK structure, its activities, services,
-providers and receivers, its libraries and SDK versions, with VirusTotal's
-dangerous permissions highlighted. A Koodous API key adds that service's
-detection status, community rating and trust score.
+Sigma, YARA and IDS rules, and the file's tags. The same key adds extra
+Androguard data such as libraries and SDK details. A Koodous API key adds that
+service's detection status, community rating and trust score.
 
 Results print to the terminal in colour, with malware indicators in bold red.
 `-json` writes the whole analysis, VirusTotal and Koodous data included, as
